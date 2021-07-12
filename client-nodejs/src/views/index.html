@@ -4,7 +4,7 @@
     <link rel="stylesheet" type="text/css" href="style.css">
   </head>
   <body>
-    <div class="header"><b>Confidential {{client_title}}</b></div>
+    <div class="header"><b>{{client_title}}</b></div>
 
     <h2>Step 1: Login</h2>
 
@@ -21,7 +21,7 @@
 
     <p>This client identify itself as '<b>{{client_id}}</b>'. You will see this ID in the following login screen.</p>
 
-    <p>The client is configured with OIDC_AUTH_URL=<b>{{oidc_auth_url}}</b>. This is the identity-provider which the client trusts.</p>
+    <p>The client is configured with OIDC_AUTH_URL=<b>{{oidc_auth_url}}</b>. This is the authorization endpoint of the identity-provider which the client trusts for managing identities.</p>
 
     <form action="/login" method="post">
       <label for="scope"><b>Scope</b></label>

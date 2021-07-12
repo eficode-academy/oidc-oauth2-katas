@@ -8,7 +8,7 @@ const querystring = require("querystring");
 const https = require('https');
 const jwt_decode = require('jwt-decode');
 
-const client_title = process.env.CLIENT_TITLE || 'Client';
+const client_title = process.env.CLIENT_TITLE || 'Confidential Client';
 const port = process.env.CLIENT_PORT || 5000;
 const base_url = process.env.CLIENT_BASE_URL || 'http://localhost:' + port
 const app = express();
@@ -37,9 +37,12 @@ app.use(express.static('src/static'));
 
 app.get('/', (req, res) => {
     if ( ! id_token_claims) {
-	res.send(mustache.render(template_index, {'client_title': client_title, 'client_id': client_id, 'oidc_auth_url': oidc_auth_url}));
+	res.send(mustache.render(template_index, {'client_title': client_title,
+						  'client_id': client_id,
+						  'oidc_auth_url': oidc_auth_url}));
     } else {
-	res.send(mustache.render(template_token, {'username': id_token_claims.preferred_username,
+	res.send(mustache.render(template_token, {'client_title': client_title,
+						  'username': id_token_claims.preferred_username,
 						  'id_token': id_token,
 						  'id_token_claims': JSON.stringify(id_token_claims, null, '  '),
 						  'access_token': access_token,
@@ -124,6 +127,15 @@ app.get('/callback', (req, res) => {
     });
     post.write(data);
     post.end();
+});
+
+app.post('/logout', (req, res) => {
+    // Very basic logout, clear local state
+    id_token = null;
+    id_token_claims = null;
+    access_token = null;
+    refresh_token = null;
+    res.redirect(base_url);
 });
 
 app.listen(port, () => {
