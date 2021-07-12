@@ -55,11 +55,29 @@ If running the client locally, you might want to export the settings as environm
 
 ```console
 export CLIENT_ID=client1
-export CLIENT_SECRET=xxx
+export CLIENT_SECRET=<xxx>
 export OIDC_AUTH_URL=`curl -s https://keycloak.user1.mvl.eficode.academy/auth/realms/myrealm/.well-known/openid-configuration | jq -r .authorization_endpoint`
 export OIDC_TOKEN_URL=`curl -s https://keycloak.user1.mvl.eficode.academy/auth/realms/myrealm/.well-known/openid-configuration | jq -r .token_endpoint`
 ```
 
+```console
+kubectl create secret generic client1 --from-literal=client_id=client1 --from-literal=client_secret=<xxx>
+kubectl create configmap client1 \
+    --from-literal=oidc_auth_url=<yyy>  \
+    --from-literal=oidc_token_url=<zzz> \
+    --from-literal=client_base_url=https://client1.user<X>.<training-name>.eficode.academy
+```
+
 ## Exercise
+
+```console
+cd oidc-oauth2-katas
+kubectl apply -f kubernetes/client1.yaml
+```
+
+```console
+kubectl logs -f -l app=client1 -c client
+```
+
 
 ### Clean up
