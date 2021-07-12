@@ -28,7 +28,7 @@ When logged in, move you mouse to the upper left corner and select
 
 Enter the realm name `myrealm` and click `Create`.
 
-## Create a test user
+## Adding Users
 
 Use the following procedure to configure one or more test users.
 
@@ -42,6 +42,11 @@ Enter username, email, first and last name. Also, check the `Email Verified` tog
 
 When done configuring the user, click `Save`.
 
+Finally, set the user password. Select `Credentials` in the top menu,
+enter a password and ensure that `Temporary` is set to `OFF`:
+
+> ![KeyCloak specify user password](images/keycloak-add-user-set-pw-anno.png)
+
 ## Configuring Clients
 
 To allow clients to login users and obtain tokens from Keycloak, they
@@ -51,8 +56,8 @@ Select `Clients` in the left-hand menu and click `Create`:
 
 > ![KeyCloak add client](images/keycloak-add-client-anno.png)
 
-Next, give the client an ID, e.g. `client-123` and add a root URL of
-the application.
+Next, give the client an ID, e.g. `client1` and add a root URL of
+the application. Click `Save` when you have added client settings.
 
 <details>
 <summary>:bulb:Which client root URL should I use?</summary>
@@ -60,7 +65,31 @@ the application.
 The client root URL depends on where you run the client application
 and how you access it from your browser. If you use you laptop browser
 and also run the client application on your laptop, the root URL might
-be something like `http://localhost:5000`.
+be something like `http://localhost:5000`. For an Eficode training, you
+will be running the clients on Kubernetes and your client URL will
+look like the following:
+
+```
+https://client1.user<X>.<training-name>.eficode.academy
+```
+
 </details>
 
 > ![KeyCloak specify client data](images/keycloak-add-client2-anno.png)
+
+After having created a client, we are presented with further details
+about the client. Scroll down and locate `Access Type`. Change it to
+`confidential` as shown below. Click save when you have change the
+access type.
+
+> ![KeyCloak specify client data](images/keycloak-add-client-confidential-type-anno.png)
+
+After having changed the client access type to `confidential`, we get
+a `Credentials` tab in the top menu. Select the `Credentials` tab.
+
+On the credentials page we see, that 'Client Authenticator' is set to
+`Client Id and Secret` and we also see the secret which has been
+assigned to the client. We will need this secret later, i.e. now you
+know where to locate it.
+
+> ![KeyCloak specify client data](images/keycloak-add-client-lookup-creds-anno.png)

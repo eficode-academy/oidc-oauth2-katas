@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="stylesheet" type="text/css" href="style.css">
+  </head>
+  <body>
+    <div class="header"><b>Client</b></div>
+
+    <h2>Step 3: Token Received by Client</h2>
+
+    <p>You are logged in as: <b>{{username}}</b></p>
+
+    <div>
+      <div class="row">
+	<form action="/logout" method="post">
+	  <button type="submit">Logout</button>
+	</form>
+      </div>
+      <div class="row">
+	<form action="/checklogin" method="post">
+	  <button type="submit">Check Login Status</button>
+	</form>
+      </div>
+    </div>
+
+    <p>This is the ID-token we received:</p>
+    <div class="framed"><p>{{id_token}}</p></div>
+
+    <p>The following is the content of the ID-token (the 'claims'). The 'audience', i.e. the recepient of the ID-token, is the client itself and ID-tokens should only be used by the client. ID-tokens are not opaque. They can and should be parsed by the client.</p>
+    <div class="framed verbatim"><p>{{id_token_claims}}</p></div>
+
+    <p>Some standard OIDC claims are:</p>
+    <ul>
+      <li>sub - Subject, the user which the ID-token represents</li>
+      <li>aud - audience, who the token was issued for (i.e. this client)</li>
+      <li>iss - issuer, who issued to token</li>
+      <li>iat - issued at, date when token was issued</li>
+      <li>exp - expires at, date when token no longer is valid</li>
+    </ul>
+
+    <p>See <a href="https://openid.net/specs/openid-connect-basic-1_0.html#IDToken">OIDC ID Token</a> and
+    <a href="https://openid.net/specs/openid-connect-basic-1_0.html#StandardClaims">OIDC Standard Claims</a> for more
+    information on the claims in the token.</p>
+
+    <p>The client must validate the token. See <a href="https://openid.net/specs/openid-connect-basic-1_0.html#IDTokenValidation">ID Token Validation</a>.</p>
+
+    <p>This is the access-token we received:</p>
+    <div class="framed"><p>{{access_token}}</p></div>
+
+    <p>Access tokens are opaque and cannot be parsed by the client. However, the access-token can be used to fetch user information from the 'userinfo' endpoint (subject to the scope of our access-token).</p>
+
+    <form action="/getuserinfo" method="post">
+      <button type="submit">Read userinfo using access-token</button>
+    </form>
+
+    <p>If the access token scope includes 'api', then we can also read data from the protected API.</p>
+
+    <form action="/read-api" method="post">
+      <div class="row">
+	<button type="submit">Read from API</button>
+        using
+	<select name="auth-token-usage">
+	  <option value="authentication-header">Access token in authentication header</option>
+	  <option value="none">No authentication</option>
+	</select>
+      </div>
+    </form>
+
+    <p>This is the refresh-token we received:</p>
+    <div class="framed"><p>{{refresh_token}}</p></div>
+
+    <form action="/refresh-token" method="post">
+      <div class="row">
+	<button type="submit">Refresh token</button>
+      </div>
+    </form>
+
+  </body>
+</html>

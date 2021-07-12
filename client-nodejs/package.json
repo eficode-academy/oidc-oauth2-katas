@@ -1,0 +1,33 @@
+{
+   "name": "client-nodejs",
+   "version": "1.0.0",
+   "description": "",
+   "main": "client.js",
+   "watch": {
+      "start": {
+         "patterns": [
+            "src",
+            "src/views",
+            "src/static"
+         ],
+         "extensions": "js,html,css"
+      }
+   },
+   "scripts": {
+      "watch": "npm-watch",
+      "start": "node src/client.js",
+      "test": "echo \"Error: no test specified\" && exit 1"
+   },
+   "keywords": [],
+   "author": "",
+   "license": "ISC",
+   "dependencies": {
+      "express": "^4.17.1",
+      "jwt-decode": "^3.1.2",
+      "mustache": "^4.2.0",
+      "randomstring": "^1.2.1"
+   },
+   "devDependencies": {
+      "npm-watch": "^0.10.0"
+   }
+}
