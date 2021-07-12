@@ -53,8 +53,8 @@ app.get('/', (req, res) => {
 // First step in an authorization code flow login. Redirect to Identity provider (IdP).
 app.post('/login', (req, res) => {
     let scope = req.body.scope;
-    state = Buffer(randomstring.generate(24)).toString('base64');
-    let nonce = Buffer(randomstring.generate(24)).toString('base64');
+    state = Buffer.from(randomstring.generate(24)).toString('base64');
+    let nonce = Buffer.from(randomstring.generate(24)).toString('base64');
     console.log('Using scope', scope, 'state', state, 'nonce', nonce);
 
     let url = oidc_auth_url + '?' + querystring.encode({
