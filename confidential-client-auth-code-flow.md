@@ -4,7 +4,10 @@
 
 - Configure a confidential client to work with an OIDC identity provider
 - Hands-on with the requests and responses of the authorization code flow
-- Understanding ID-tokens/JWTs
+- Decoding ID-tokens/JWTs
+- What is the Context of a login-session
+- Investigate identity provider session cookies
+- Single-sign-on (SSO) using a second client
 
 ## Introduction
 
@@ -148,12 +151,28 @@ echo $IDTOKEN | cut -d. -f2 | base64 -d | jq .
 
 > If you get an `base64: invalid input` warning from this command then its most likely because the base64 encoded data is not a multiple of 4 characters. I.e. the output if `cut` needs to be padded with a number of `=` characters. This warning is however, safe to ignore.
 
-### Client xxx
+### How the Client Implemented the Authorization Code Flow
 
+OIDC was designed such that complexity lies mainly with the identity
+provider/authorization server and clients are kept simple.
 
+Now is a good time to investigate the [client code](client-nodejs/src/client.js).
 
-** Will probably split the exercise here **
+The application flow is:
 
+1. Initially [index.html](client-nodejs/src/views/index.html) is
+shown. This page have a form which posts to the clients `/login`
+endpoint.
+
+2. The `/login` endpoint builds a URL for the identity provider
+authorization endpoint and redirects the browser there. A parameter to
+the identity provider is the clients `redirect_uri`, i.e. the client
+callback which the identity provider calls when login is complete.
+
+3. In the client callback endpoint `/callback`, the client retrieves
+the `code` which the identity provider included and subsequently the
+client use the identity provider token endpoint to exchange the `code`
+for tokens.
 
 ### Identity Provider Session Cookies
 
@@ -195,7 +214,7 @@ you will be prompted for login information.
 <details>
 <summary>:bulb:What about 'consent'?</summary>
 
-You may notice, that you where not asked about consent once more. Identity providers typically only asks this initially and then stores the consent. You can find this in KeyClock under `Users` and `Consent`.
+You may notice, that you where not asked about consent once more. Identity providers typically only asks this initially and then stores the consent. You can find this in KeyCloak under `Users` and `Consent`.
 </details>
 
 ### Single Sign On (SSO)
@@ -236,6 +255,8 @@ When the `client2` POD is `Running`, go to the URL stored in the
 `client2`, you will be asked for consent because this is a new client
 requesting access to the user profile, but you will not be requested
 to provide user login information.
+
+> ![Client2 displays tokens](images/client2-token-screen.png)
 
 ### Clean up
 
