@@ -1,3 +1,7 @@
 # OIDC and OAuth2 Katas
 
-[Confidential Client with Authorization Code Flow](confidential-client-auth-code-flow.md)
+Exercises for the [Eficode Academy](https://www.eficode.com/academy) OIDC/OAuth2 training.
+
+## Exercise Overview
+
+- [Confidential Client with Authorization Code Flow](confidential-client-auth-code-flow.md)

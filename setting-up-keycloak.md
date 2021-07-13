@@ -1,7 +1,7 @@
 # Setting up KeyCloak
 
 This guide describes how to create a realm in KeyCloak, add a user and
-a client configuration. This guide does not describe how to deploy
+a client configuration. This guide does not cover how to deploy
 KeyCloak. You must have an URL for KeyCloak before using this
 guide. If you are participating in an Eficode training, the URL will
 look like the following:
@@ -63,24 +63,24 @@ the application. Click `Save` when you have added client settings.
 <summary>:bulb:Which client root URL should I use?</summary>
 
 The client root URL depends on where you run the client application
-and how you access it from your browser. If you use you laptop browser
-and also run the client application on your laptop, the root URL might
-be something like `http://localhost:5000`. For an Eficode training, you
-will be running the clients on Kubernetes and your client URL will
-look like the following:
+and how you access it from your browser. If you use your laptop
+browser and also run the client application on your laptop, the root
+URL might be something like `http://localhost:5000`. For an Eficode
+training, you will be running the clients on Kubernetes and your
+client URL will look like the following (where you need to place `<X>`
+and `<training-name>` as above):
 
 ```
 https://client1.user<X>.<training-name>.eficode.academy
 ```
-
 </details>
 
 > ![KeyCloak specify client data](images/keycloak-add-client2-anno.png)
 
 After having created a client, we are presented with further details
-about the client. Scroll down and locate `Access Type`. Change it to
-`confidential` as shown below. Click save when you have change the
-access type.
+about the client. Scroll down and locate `Consent Required` and change
+it to `On`. Also locate `Access Type` and change it to `confidential`
+as shown below. Click save when you have change the access type.
 
 > ![KeyCloak specify client data](images/keycloak-add-client-confidential-type-anno.png)
 
@@ -93,3 +93,5 @@ assigned to the client. We will need this secret later, i.e. now you
 know where to locate it.
 
 > ![KeyCloak specify client data](images/keycloak-add-client-lookup-creds-anno.png)
+
+**Repeat the steps above to create a 'client2'**
