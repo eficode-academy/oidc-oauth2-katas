@@ -266,4 +266,7 @@ to provide user login information.
 
 ### Clean up
 
-TBD.
+```console
+kubectl delete -f kubernetes/client1.yaml
+kubectl delete -f kubernetes/client2.yaml
+```
