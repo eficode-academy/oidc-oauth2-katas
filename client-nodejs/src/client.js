@@ -153,6 +153,26 @@ app.post('/logout', (req, res) => {
     res.redirect(base_url);
 });
 
+// This actions checks login through a normal authorization code flow but with `prompt=none`
+app.post('/checklogin', (req, res) => {
+    state = Buffer.from(randomstring.generate(24)).toString('base64');
+    nonce = Buffer.from(randomstring.generate(24)).toString('base64');
+    console.log('Using scope', scope, 'state', state, 'nonce', nonce);
+
+    let url = oidc_auth_url + '?' + querystring.encode({
+	'response_type': 'code',               // Use authorization code flow
+	'client_id': client_id,                // This is who we are
+	'scope': scope,                        // What we 'want'
+	'redirect_uri': base_url+'/callback',  // Call us here when login done at IdP
+	'state': state,                        // For our own use, if we need it and for protection
+	'nonce': nonce,                        // Replay protection, echoed in id_token
+	'id_token_hint': id_token,             // Check login for this identity
+	'prompt': 'none'                       // Don't query user for username/password
+    });
+    console.log('Redirecting login to identity provider', url);
+    res.redirect(url);
+});
+
 app.listen(port, () => {
     console.log(`Client listening on port ${port}!`);
 });
