@@ -1,6 +1,7 @@
 const fs = require('fs');
 const express = require('express');
 const bodyParser = require('body-parser');
+const morgan = require('morgan');
 const mustache = require('mustache');
 const crypto = require('crypto');
 const randomstring = require("randomstring");
@@ -17,7 +18,7 @@ const app = express();
 const template_index = fs.readFileSync('src/views/index.html', 'utf-8');
 const template_token = fs.readFileSync('src/views/token.html', 'utf-8');
 
-var state;
+var scope, state, nonce;
 var id_token, accesS_token, refresh_token;
 var id_token_claims;
 
@@ -32,6 +33,7 @@ console.log('CLIENT_SECRET', client_secret)
 console.log('OIDC_AUTH_URL', oidc_auth_url)
 console.log('OIDC_TOKEN_URL', oidc_token_url)
 
+app.use(morgan('combined'));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static('src/static'));
@@ -55,9 +57,9 @@ app.get('/', (req, res) => {
 
 // First step in an authorization code flow login. Redirect to Identity provider (IdP).
 app.post('/login', (req, res) => {
-    let scope = req.body.scope;
+    scope = req.body.scope;
     state = Buffer.from(randomstring.generate(24)).toString('base64');
-    let nonce = Buffer.from(randomstring.generate(24)).toString('base64');
+    nonce = Buffer.from(randomstring.generate(24)).toString('base64');
     console.log('Using scope', scope, 'state', state, 'nonce', nonce);
 
     let url = oidc_auth_url + '?' + querystring.encode({
@@ -80,9 +82,19 @@ app.get('/callback', (req, res) => {
     let idp_state = req.query.state
     console.log('Callback with code', code, 'state', idp_state, 'our state is', state);
 
+    if ( ! code) {
+	error = req.query.error;
+	console.log('No code returned. Error', error);
+	id_token = null;
+	id_token_claims = null;
+	access_token = null;
+	refresh_token = null;
+	return res.redirect(base_url);
+    }
+
     if (state != idp_state) {
 	console.log('Error, state mismatch. We do not know this callback.');
-	res.redirect(base_url);
+	return res.redirect(base_url);
     }
 
     // This is a confidential client - authorize towards IdP with client id and secret
