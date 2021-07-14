@@ -137,23 +137,53 @@ authorization code flow login.
 
 > With in-browser Javascript we can do more, but that is not within the scope of this exercise.
 
-However, this can be 
-
-xxx
-
-Go to KeyCloak and in the left-hand menu select `Users` and then `View all users` in the top menu. Next, click on the user ID of the user logged-in and then `Sessions` in the top menu. Next, you will see the following. Select `Logout` in the 
+To see current user login sessions from a KeyCloak perspective, go to
+KeyCloak and in the left-hand menu select `Users` and then `View all
+users` in the top menu. Next, click on the user ID of the user
+logged-in and then `Sessions` in the top menu. Next, you will see the
+following.
 
 > ![User login sessions](images/keycloak-user-sessions-anno.png)
 
-#### OIDC Sessions
+The client have a button `Check Login Status`, which re-authenticates using the authorization code flow with two extra parameters:
+
+- `prompt=none`, i.e. do not prompt the user for login, we prefer an error if user is no longer logfed-in.
+- `id_token_hint=xxx`, this is the user for which we want to silently log-in.
+
+To see this in action, watch the client logs with the command below and press the `Check Login Status` button.
+
+```console
+kubectl logs -f -l app=client1
+```
+
+In the logs you should see the following (slightly edited for brevity)
+
+```
+Redirecting login to identity provider https://keycloak.userX..../openid-connect/auth?response_type=code&...&id_token_hint=XXXX&prompt=none
+```
+
+You will also see that as long as the user have a login session with
+KeyCloak, the silent authorization succesfully issues a new
+ID-token. If you select `Logout` in the KeyCloak user session view,
+you will be prompted for login because the client observes an error in
+the authorization code flow.
+
+
+**This is WIP - may be left out:**
+
+Client-side logout:
 
 ```console
 export OIDC_END_SESSION_EP=`curl -s https://keycloak.user$USER_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm/.well-known/openid-configuration | jq -r .end_session_endpoint`
 ```
-
 ```console
 curl "$OIDC_END_SESSION_EP?id_token_hint=$ID_TOKEN"
 ```
+** End WIP **
+
+
+
+
 
 
 ### Clean up
