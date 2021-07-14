@@ -191,7 +191,7 @@ browser and identity provider, i.e. you will have to clock `Login`
 again. When you click `Login` you will notice that you are immediately
 logged in.
 
-> Note: If you are prompted for login information it might be because the login session has expired. KeyCloak use a default timeout of 30 minutes. If this happens, redeploy the client once more and re-login using the fresh login session.
+> Note: If you are prompted for login information it might be because the login session has expired. KeyCloak use a default session timeout of 30 minutes. If this happens, redeploy the client once more and re-login using the fresh login session.
 
 To see the cookies, which stores this session between browser and
 identity provider, open the identity provider authorization URL (the
@@ -215,6 +215,12 @@ you will be prompted for login information.
 <summary>:bulb:What about 'consent'?</summary>
 
 You may notice, that you where not asked about consent once more. Identity providers typically only asks this initially and then stores the consent. You can find this in KeyCloak under `Users` and `Consent`.
+</details>
+
+<details>
+<summary>:bulb:The example clients does not use cookies. What are the security implications of this?</summary>
+
+The example clients use global variables to store tokens and does not set any browser cookies with e.g. session IDs. This means that there is no browser-to-client authentication and authorization. Anyone accessing the client can see the tokens!
 </details>
 
 ### Single Sign On (SSO)
