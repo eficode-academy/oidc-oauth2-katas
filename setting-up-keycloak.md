@@ -28,6 +28,12 @@ When logged in, move you mouse to the upper left corner and select
 
 Enter the realm name `myrealm` and click `Create`.
 
+Next, select `Realm Settings` in the left-hand menu and `Tokens` in
+the top-menu. Locate `Access Token Lifespan` and change it from 5
+minutes to 30 minutes.
+
+Click `Save` to save realm settings at the end of the page.
+
 ## Adding Users
 
 Use the following procedure to configure one or more test users.
