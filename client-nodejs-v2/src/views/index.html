@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="stylesheet" type="text/css" href="{{client_stylefile}}">
+  </head>
+  <body>
+    <div class="header"><b>{{client_title}}</b></div>
+
+    <h2>Step 1: Login</h2>
+
+    <p>This is the initial step, where we select to login, and where scope defines which claims will be included in our identity-token.</p>
+
+    <p>A 'claim' is metadata about a user, i.e. typically a client will request access to the user 'profile', i.e. request a token with the scope 'profile'. See <a href="https://openid.net/specs/openid-connect-basic-1_0.html#Scopes">OIDC Scopes</a> for a list of standardized scopes. Some typical scopes are:</p>
+
+    <ul>
+      <li>openid - indicates that this is an OpenID request. Needed for ID-tokens to be issued.</li>
+      <li>profile - covers grants such as 'name' and 'birthdate'</li>
+      <li>address</li>
+      <li>email</li>
+    </ul>
+
+    <p>Scopes are translated into 'claims' in the ID-token, i.e. metadata that the identity provider asserts are valid. See <a href="https://openid.net/specs/openid-connect-basic-1_0.html#StandardClaims">OIDC Claims</a> for a list of claims</p>
+
+    <p>This client identify itself as '<b>{{client_id}}</b>'. You will see this ID in the following login screen.</p>
+
+    <p>The client is configured with OIDC_ISSUER_URL=<b>{{oidc_issuer_url}}</b>. This is the authorization endpoint of the identity-provider which the client trusts for managing identities.</p>
+
+    <form action="/login" method="post">
+      <label for="scope"><b>Scope</b></label>
+      <input type="text" placeholder="Enter scope" name="scope" value="openid profile" size="50" required>
+
+      <button type="submit">Login</button>
+    </form>
+
+  </body>
+</html>

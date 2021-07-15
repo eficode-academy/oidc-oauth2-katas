@@ -1,0 +1,39 @@
+{
+   "name": "client-nodejs-v2",
+   "version": "1.0.0",
+   "description": "",
+   "main": "client.js",
+   "watch": {
+      "start": {
+         "patterns": [
+            "src",
+            "src/views",
+            "src/static"
+         ],
+         "extensions": "js,html,css"
+      }
+   },
+   "scripts": {
+      "watch": "npm-watch",
+      "start": "node src/client.js",
+      "test": "echo \"Error: no test specified\" && exit 1"
+   },
+   "keywords": [],
+   "author": "",
+   "license": "ISC",
+   "dependencies": {
+      "body-parser": "^1.19.0",
+      "connect-ensure-login": "^0.1.1",
+      "connect-flash": "^0.1.1",
+      "cookie-parser": "^1.4.5",
+      "express": "^4.17.1",
+      "express-session": "^1.17.2",
+      "morgan": "^1.10.0",
+      "mustache": "^4.2.0",
+      "openid-client": "^4.7.4",
+      "passport": "^0.4.1"
+   },
+   "devDependencies": {
+      "npm-watch": "^0.10.0"
+   }
+}

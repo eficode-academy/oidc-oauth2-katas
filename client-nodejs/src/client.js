@@ -1,7 +1,7 @@
 const fs = require('fs');
 const express = require('express');
 const bodyParser = require('body-parser');
-const morgan = require('morgan');
+const logger = require('morgan');
 const mustache = require('mustache');
 const crypto = require('crypto');
 const randomstring = require("randomstring");
@@ -33,26 +33,33 @@ console.log('CLIENT_SECRET', client_secret)
 console.log('OIDC_AUTH_URL', oidc_auth_url)
 console.log('OIDC_TOKEN_URL', oidc_token_url)
 
-app.use(morgan('combined'));
+app.use(logger('combined'));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static('src/static'));
 
+// Serve login page, unless we already have id information cached - in which case we
+// redirect to the 'already logged-in' area
 app.get('/', (req, res) => {
-    if ( ! id_token_claims) {
-	res.send(mustache.render(template_index, {'client_title': client_title,
-						  'client_stylefile': client_stylefile,
-						  'client_id': client_id,
-						  'oidc_auth_url': oidc_auth_url}));
-    } else {
-	res.send(mustache.render(template_token, {'client_title': client_title,
-						  'client_stylefile': client_stylefile,
-						  'username': id_token_claims.preferred_username,
-						  'id_token': id_token,
-						  'id_token_claims': JSON.stringify(id_token_claims, null, '  '),
-						  'access_token': access_token,
-						  'refresh_token': refresh_token }));
+    if (id_token_claims) {
+	return res.redirect(base_url+'/protected');
     }
+    res.send(mustache.render(template_index, {'client_title': client_title,
+					      'client_stylefile': client_stylefile,
+					      'client_id': client_id,
+					      'oidc_auth_url': oidc_auth_url}));
+});
+
+// Show 'secret' information like tokens. This client is not secure and stores login-state
+// globally, so this is only for  demonstration purposes
+app.get('/protected/', (req, res) => {
+    res.send(mustache.render(template_token, {'client_title': client_title,
+					      'client_stylefile': client_stylefile,
+					      'username': id_token_claims.preferred_username,
+					      'id_token': id_token,
+					      'id_token_claims': JSON.stringify(id_token_claims, null, '  '),
+					      'access_token': access_token,
+					      'refresh_token': refresh_token }));
 });
 
 // First step in an authorization code flow login. Redirect to Identity provider (IdP).
