@@ -131,15 +131,22 @@ Issuer.discover(oidc_issuer_url)
 						      'access_token':  req.user.tokenSet.access_token,
 						      'refresh_token':  req.user.tokenSet.refresh_token
 						     }));
-	    setInterval(function () {
-		console.log('Check id token is still valid using introspection...');
-		client.introspect(req.user.tokenSet.id_token).then(function (token_status) {
-		    console.log('Token introspect result', token_status);
-		    if ( ! token_status.active ) {
-			console.log('Id token no longer active');
-		    }
-		})
-	    }, 5000)
+	    // setInterval(function () {
+	    // 	console.log('Check id token is still valid using introspection...');
+	    // 	client.introspect(req.user.tokenSet.id_token).then(function (token_status) {
+	    // 	    console.log('Token introspect result', token_status);
+	    // 	    if ( ! token_status.active ) {
+	    // 		console.log('Id token no longer active');
+	    // 	    }
+	    // 	})
+	    // }, 5000);
+	});
+
+	// Error handler
+	app.use(function(err, req, res, next) {
+	    res.locals.message = err.message;
+	    res.locals.error = req.app.get('env') === 'development' ? err : {};
+	    res.status(err.status || 500);
 	});
     });
 

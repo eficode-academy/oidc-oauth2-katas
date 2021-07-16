@@ -56,6 +56,8 @@ spec:
             configMapKeyRef:
               name: client1
               key: oidc_issuer_url
+        - name: REDIS_URL
+          value: ""
         workingDir: /app/oidc-oauth2-katas/client-nodejs-v2
         volumeMounts:
         - mountPath: /app
