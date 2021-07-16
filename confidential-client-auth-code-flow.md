@@ -269,4 +269,6 @@ to provide user login information.
 ```console
 kubectl delete -f kubernetes/client1.yaml
 kubectl delete -f kubernetes/client2.yaml
+kubectl delete secret client1
+kubectl delete configmap client1
 ```

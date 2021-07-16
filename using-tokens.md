@@ -62,6 +62,7 @@ curl --data "client_id=$CLIENT_ID&client_secret=$CLIENT_SECRET&token=$ACCESS_TOK
 ```
 {
   "active": true,
+  "scope": "openid profile email",
   ...
   "name": "Aname1 Alastname1",
   "given_name": "Aname1",
@@ -69,7 +70,6 @@ curl --data "client_id=$CLIENT_ID&client_secret=$CLIENT_SECRET&token=$ACCESS_TOK
   "preferred_username": "user1",
   "email": "user1@example.com",
   "email_verified": true,
-  "scope": "openid profile email",
   "username": "user1",
 }
 ```
@@ -81,11 +81,11 @@ curl --data "client_id=$CLIENT_ID&client_secret=$CLIENT_SECRET&token=$REFRESH_TO
 ```
 {
   "active": true
+  "scope": "openid profile email",
   "exp": 1626236894,
   ...
   "sub": "ae2e5feb-44dd-49cd-96cd-dd68deee7c0c",
   "typ": "Refresh",
-  "scope": "openid profile email",
   "client_id": "client1",
   "username": null,
 }
@@ -97,7 +97,7 @@ the token has not expired or been revoked.
 
 The token introspection endpoint returns a [standardized
 response](https://datatracker.ietf.org/doc/html/rfc7662#section-2.2)
-however, only the `active` field is quaranteed in the response.
+however, only the `active` field is guaranteed in the response.
 
 ### Refreshing Tokens
 
@@ -127,7 +127,7 @@ even after the user has closed the browser and similarly continue to
 access whatever the access token protects. This is an example of
 **access being delegated from the user to the client**.
 
-### Revalidating User Login
+### Re-validating User Login
 
 The user login authentication session exists between the user/browser
 and the identity provider. The client does not know the status of this
@@ -147,7 +147,7 @@ following.
 
 The client have a button `Check Login Status`, which re-authenticates using the authorization code flow with two extra parameters:
 
-- `prompt=none`, i.e. do not prompt the user for login, we prefer an error if user is no longer logfed-in.
+- `prompt=none`, i.e. do not prompt the user for login, we prefer an error if user is no longer logged-in.
 - `id_token_hint=xxx`, this is the user for which we want to silently log-in.
 
 To see this in action, watch the client logs with the command below and press the `Check Login Status` button.
@@ -163,23 +163,26 @@ Redirecting login to identity provider https://keycloak.userX..../openid-connect
 ```
 
 You will also see that as long as the user have a login session with
-KeyCloak, the silent authorization succesfully issues a new
+KeyCloak, the silent authorization successfully issues a new
 ID-token. If you select `Logout` in the KeyCloak user session view,
 you will be prompted for login because the client observes an error in
 the authorization code flow.
 
-
-**This is WIP - may be left out:**
-
-Client-side logout:
+Login can also be performed from the client-side. Again, the identity
+provider provide an URL, which we can find from the OIDC
+configuration as `end_session_endpoint`:
 
 ```console
 export OIDC_END_SESSION_EP=`curl -s https://keycloak.user$USER_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm/.well-known/openid-configuration | jq -r .end_session_endpoint`
 ```
+
+Identity provider logout from the client is then achieved with an
+`id_token_hint` parameter to indicate who is logging out:
+
 ```console
 curl "$OIDC_END_SESSION_EP?id_token_hint=$ID_TOKEN"
 ```
-** End WIP **
+
 
 
 
@@ -188,3 +191,8 @@ curl "$OIDC_END_SESSION_EP?id_token_hint=$ID_TOKEN"
 
 ### Clean up
 
+```console
+kubectl delete -f kubernetes/client1-v2.yaml
+kubectl delete secret client1
+kubectl delete configmap client1
+```
