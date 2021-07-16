@@ -1,11 +1,9 @@
+const os = require("os");
 const fs = require('fs');
 const express = require('express');
 const session = require('express-session');
 const passport = require('passport');
-//const flash = require('connect-flash');
-const ensureLoggedIn = require('connect-ensure-login').ensureLoggedIn;
 const bodyParser = require('body-parser');
-const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const mustache = require('mustache');
 const { Issuer, Strategy } = require('openid-client');
@@ -22,6 +20,7 @@ const template_token = fs.readFileSync('src/views/token.html', 'utf-8');
 const client_id = process.env.CLIENT_ID;
 const client_secret = process.env.CLIENT_SECRET;
 const oidc_issuer_url = process.env.OIDC_ISSUER_URL;
+const hostname = ' ('+os.hostname()+')';
 
 console.log('CLIENT_BASE_URL', base_url);
 console.log('CLIENT_ID', client_id);
@@ -30,39 +29,35 @@ console.log('OIDC_ISSUER_URL', oidc_issuer_url);
 
 app.use(logger('combined'));
 app.use(express.static('src/static'));
-app.use(session({ secret: "mySessionSecret" }));
+app.use(session({ secret: "mySessionSecret", resave: false, saveUninitialized: false }));
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(cookieParser());
 app.use(express.json());
 app.use(passport.initialize());
 app.use(passport.session());
-//app.use(flash());
+
+// Middleware to check if user is logged in
+function isLoggedIn(req, res, next) {
+    console.log('Check login of user', req.user);
+    if ( ! req.user) {
+	console.log('User not logged in');
+	return res.redirect(base_url);
+    }
+    next();
+}
 
 // Serve login page
 app.get('/', (req, res) => {
-    res.send(mustache.render(template_index, {'client_title': client_title,
+    res.send(mustache.render(template_index, {'client_title': client_title, 'client_title2': hostname,
 					      'client_stylefile': client_stylefile,
 					      'client_id': client_id,
 					      'oidc_issuer_url': oidc_issuer_url}));
-});
-
-// Show 'secret' information like tokens. Only shown to logged-in users
-app.get('/user/', ensureLoggedIn('/'), (req, res) => {
-    console.log('xxx user', req.user);
-    res.send(mustache.render(template_token, {'client_title': client_title,
-					      'client_stylefile': client_stylefile,
-					      'username': req.user.userinfo.preferred_username,
-					      'id_token': req.user.tokenSet.id_token,
-					      'id_token_claims': JSON.stringify(req.user.claims, null, '  '),
-					      'access_token':  req.user.tokenSet.access_token,
-					      'refresh_token':  req.user.tokenSet.refresh_token
-					     }));
 });
 
 Issuer.discover(oidc_issuer_url)
     .then(function (issuer) {
 	console.log('Discovered issuer %s %O', issuer.issuer, issuer.metadata);
 
+	// Client settings for authorization code flow
 	var client = new issuer.Client({
 	    client_id: client_id,
 	    client_secret: client_secret,
@@ -71,10 +66,11 @@ Issuer.discover(oidc_issuer_url)
 	    response_types: ['code'],
 	    token_endpoint_auth_method: 'client_secret_post'
 	});
-	
+
+	// Validation strategy
 	passport.use('oidc',
 		     new Strategy({ client }, (tokenSet, userinfo, done) => {
-			 console.log('yyy', userinfo);
+			 // 'user' is a composite object with userinfo, tokens and claims
 			 return done(null, {userinfo: userinfo, claims: tokenSet.claims(), tokenSet: tokenSet});
 		     })
 		    );
@@ -86,17 +82,49 @@ Issuer.discover(oidc_issuer_url)
 	    done(null, user);
 	});
 
+	// Initiate authorization code flow using the 'oidc' strategy with customized scope
 	app.post('/login', (req, res, next) => {
 	    scope = req.body.scope;
 	    console.log('Requesting scope', scope);
 	    passport.authenticate('oidc', { scope: scope })(req, res, next);
 	});
 
+	// Authorization code flow callback
 	app.get('/callback', (req, res, next) => {
 	    passport.authenticate('oidc', {
 		successRedirect: '/user',
-		failureRedirect: '/error'
+		failureRedirect: '/'
 	    })(req, res, next);
+	});
+
+	// End session and redirect to login page
+	app.get('/logout', (req, res) => {
+	    req.session.destroy((err) => {
+		res.redirect(client.endSessionUrl({ id_token_hint: req.user.tokenSet.id_token,
+						    post_logout_redirect_uri: base_url}));
+	    });
+	});
+
+	// Show 'secret' information like tokens. Only shown to logged-in users
+	app.get('/user/', isLoggedIn, (req, res) => {
+	    console.log('User data', req.user);
+	    res.send(mustache.render(template_token, {'client_title': client_title, 'client_title2': hostname,
+						      'client_stylefile': client_stylefile,
+						      'username': req.user.userinfo.preferred_username,
+						      'id_token': req.user.tokenSet.id_token,
+						      'id_token_claims': JSON.stringify(req.user.claims, null, '  '),
+						      'access_token':  req.user.tokenSet.access_token,
+						      'refresh_token':  req.user.tokenSet.refresh_token
+						     }));
+	    setInterval(function () {
+		console.log('Check id token is still valid using introspection...');
+		client.introspect(req.user.tokenSet.id_token).then(function (token_status) {
+		    console.log('Token introspect result', token_status);
+		    if ( ! token_status.active ) {
+			console.log('Id token no longer active');
+		    }
+		})
+	    }, 5000)
 	});
     });
 

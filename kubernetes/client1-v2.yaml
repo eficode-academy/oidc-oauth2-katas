@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: client1
+  name: client1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: client1
+  template:
+    metadata:
+      labels:
+        app: client1
+    spec:
+      initContainers:
+      - image: alpine/git:v2.30.2
+        name: git-clone
+        command: ["git", "clone", "https://github.com/eficode-academy/oidc-oauth2-katas"]
+        workingDir: /app
+        volumeMounts:
+        - mountPath: /app
+          name: app
+      - image: node:16.4.2-alpine3.12
+        name: modules
+        command: ["npm", "i"]
+        workingDir: /app/oidc-oauth2-katas/client-nodejs-v2
+        volumeMounts:
+        - mountPath: /app
+          name: app
+      containers:
+      - image: node:16.4.2-alpine3.12
+        name: client
+        command: ["node", "src/client.js"]
+        env:
+        - name: CLIENT_TITLE
+          value: "Confidential Client1"
+        - name: CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: client1
+              key: client_id
+        - name: CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: client1
+              key: client_secret
+        - name: CLIENT_BASE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: client1
+              key: client_base_url
+        - name: OIDC_ISSUER_URL
+          valueFrom:
+            configMapKeyRef:
+              name: client1
+              key: oidc_issuer_url
+        workingDir: /app/oidc-oauth2-katas/client-nodejs-v2
+        volumeMounts:
+        - mountPath: /app
+          name: app
+      volumes:
+      - name: app
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: client1
+  name: client1
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 5000
+  selector:
+    app: client1
+  type: ClusterIP
