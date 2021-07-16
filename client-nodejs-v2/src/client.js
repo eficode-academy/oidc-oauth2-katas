@@ -123,6 +123,7 @@ Issuer.discover(oidc_issuer_url)
 	// Show 'secret' information like tokens. Only shown to logged-in users
 	app.get('/user/', isLoggedIn, (req, res) => {
 	    console.log('User data', req.user);
+	    res.set('Cache-control', `no-store`);
 	    res.send(mustache.render(template_token, {'client_title': client_title, 'client_title2': hostname,
 						      'client_stylefile': client_stylefile,
 						      'username': req.user.userinfo.preferred_username,
