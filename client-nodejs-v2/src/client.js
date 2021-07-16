@@ -2,6 +2,8 @@ const os = require("os");
 const fs = require('fs');
 const express = require('express');
 const session = require('express-session');
+const redis = require('redis')
+
 const passport = require('passport');
 const bodyParser = require('body-parser');
 const logger = require('morgan');
@@ -20,16 +22,29 @@ const template_token = fs.readFileSync('src/views/token.html', 'utf-8');
 const client_id = process.env.CLIENT_ID;
 const client_secret = process.env.CLIENT_SECRET;
 const oidc_issuer_url = process.env.OIDC_ISSUER_URL;
+const redis_url = process.env.REDIS_URL;
 const hostname = ' ('+os.hostname()+')';
 
 console.log('CLIENT_BASE_URL', base_url);
 console.log('CLIENT_ID', client_id);
 console.log('CLIENT_SECRET', client_secret);
 console.log('OIDC_ISSUER_URL', oidc_issuer_url);
+console.log('REDIS_URL', redis_url);
 
 app.use(logger('combined'));
 app.use(express.static('src/static'));
-app.use(session({ secret: "mySessionSecret", resave: false, saveUninitialized: false }));
+if (redis_url) {
+    console.log('Using Redis session store');
+    const RedisStore = require('connect-redis')(session)
+    const redisClient = redis.createClient({ url: redis_url })
+    app.use(session({ secret: "mySessionSecret",
+		      resave: false, saveUninitialized: false,
+		      store: new RedisStore({ client: redisClient }), }));
+} else {
+    console.log('Using Memory session store');
+    app.use(session({ secret: "mySessionSecret",
+		      resave: false, saveUninitialized: false}));
+}
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(passport.initialize());
