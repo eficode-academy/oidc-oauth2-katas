@@ -23,7 +23,7 @@ const client_id = process.env.CLIENT_ID;
 const client_secret = process.env.CLIENT_SECRET;
 const oidc_issuer_url = process.env.OIDC_ISSUER_URL;
 const redis_url = process.env.REDIS_URL;
-const hostname = ' ('+os.hostname()+')';
+const hostname = os.hostname();
 
 console.log('CLIENT_BASE_URL', base_url);
 console.log('CLIENT_ID', client_id);
@@ -63,7 +63,8 @@ function isLoggedIn(req, res, next) {
 // Serve login page
 app.get('/', (req, res) => {
     res.set('Cache-control', `no-store, max-age=0`);
-    res.send(mustache.render(template_index, {'client_title': client_title, 'client_title2': hostname,
+    res.send(mustache.render(template_index, {'client_title': client_title,
+					      'client_title2': ' ('+os.hostname()+' @ '+Date.now()+')',
 					      'client_stylefile': client_stylefile,
 					      'client_id': client_id,
 					      'oidc_issuer_url': oidc_issuer_url}));
@@ -125,7 +126,8 @@ Issuer.discover(oidc_issuer_url)
 	app.get('/user/', isLoggedIn, (req, res) => {
 	    console.log('User data', req.user);
 	    res.set('Cache-control', `no-store, max-age=0`);
-	    res.send(mustache.render(template_token, {'client_title': client_title, 'client_title2': hostname,
+	    res.send(mustache.render(template_token, {'client_title': client_title,
+						      'client_title2': ' ('+os.hostname()+' @ '+Date.now()+')',
 						      'client_stylefile': client_stylefile,
 						      'username': req.user.userinfo.preferred_username,
 						      'id_token': req.user.tokenSet.id_token,
