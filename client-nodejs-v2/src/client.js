@@ -62,6 +62,8 @@ function isLoggedIn(req, res, next) {
 
 // Serve login page
 app.get('/', (req, res) => {
+    res.set('Cache-control', `no-store`);
+    res.set('Cache-control', `max-age=0`);
     res.send(mustache.render(template_index, {'client_title': client_title, 'client_title2': hostname,
 					      'client_stylefile': client_stylefile,
 					      'client_id': client_id,
@@ -124,6 +126,7 @@ Issuer.discover(oidc_issuer_url)
 	app.get('/user/', isLoggedIn, (req, res) => {
 	    console.log('User data', req.user);
 	    res.set('Cache-control', `no-store`);
+	    res.set('Cache-control', `max-age=0`);
 	    res.send(mustache.render(template_token, {'client_title': client_title, 'client_title2': hostname,
 						      'client_stylefile': client_stylefile,
 						      'username': req.user.userinfo.preferred_username,
