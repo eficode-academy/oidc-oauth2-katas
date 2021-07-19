@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: api
+  name: api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api
+  template:
+    metadata:
+      labels:
+        app: api
+    spec:
+      initContainers:
+      - image: alpine/git:v2.30.2
+        name: git-clone
+        command: ["git", "clone", "https://github.com/eficode-academy/oidc-oauth2-katas"]
+        workingDir: /app
+        volumeMounts:
+        - mountPath: /app
+          name: app
+      - image: node:16.4.2-alpine3.12
+        name: modules
+        command: ["npm", "i"]
+        workingDir: /app/oidc-oauth2-katas/object-store
+        volumeMounts:
+        - mountPath: /app
+          name: app
+      containers:
+      - image: node:16.4.2-alpine3.12
+        name: api
+        command: ["npm", "run", "watch"]
+        env:
+        - name: OIDC_ISSUER_URL
+          valueFrom:
+            configMapKeyRef:
+              name: api
+              key: oidc_issuer_url
+        workingDir: /app/oidc-oauth2-katas/object-store
+        volumeMounts:
+        - mountPath: /app
+          name: app
+      volumes:
+      - name: app
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: api
+  name: api
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 5010
+  selector:
+    app: api
+  type: ClusterIP
