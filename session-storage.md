@@ -1,4 +1,4 @@
-# Template headline
+# Session Storage
 
 ## Learning Goals
 
@@ -37,6 +37,7 @@ kubectl create configmap client1 \
 and deploy the client:
 
 ```console
+cd oidc-oauth2-katas/
 kubectl apply -f kubernetes/client1-v2.yaml
 ```
 

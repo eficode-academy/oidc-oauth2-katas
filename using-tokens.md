@@ -1,10 +1,11 @@
-# Template headline
+# Using Tokens
 
 ## Learning Goals
 
-- See how we validate and use tokens
-- Understand the concept of token 'audience'
-- Refresh of tokens
+- Using tokens from the command-line to access protected resources
+- Introspecting tokens through the Identity provider
+- Refreshing tokens
+- Logout using tokens
 
 ## Introduction
 
@@ -18,20 +19,31 @@
 
 ### Using Tokens with Curl
 
+TODO: Redeploy client v1 app
+
+Do a login through the client to get fresh tokens and export them in the CLI:
+
 ```console
 export ID_TOKEN=<xxx>
 export ACCESS_TOKEN=<yyy>
 export REFRESH_TOKEN=<zzz>
 ```
 
+Next, we use the OIDC discovery endpoint to find the URL where we can fetch userinfo:
+
 ```console
 export USERINFO_EP=`curl -s https://keycloak.user$USER_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm/.well-known/openid-configuration | jq -r .userinfo_endpoint`
-export INTROSPECTION_EP=`curl -s https://keycloak.user$USER_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm/.well-known/openid-configuration | jq -r .introspection_endpoint`
 ```
+
+Userinfo is a 'protected resource', i.e. we need to provide the access
+token in an `Authorization header` to access this information. Use the
+following to do this from the CLI:
 
 ```console
 curl -H "Authorization: Bearer $ACCESS_TOKEN" $USERINFO_EP | jq .
 ```
+
+and you should see detailed user information:
 
 ```
 {
@@ -45,16 +57,42 @@ curl -H "Authorization: Bearer $ACCESS_TOKEN" $USERINFO_EP | jq .
 }
 ```
 
-In exercise [Confidential Client with Authorization Code
-Flow](confidential-client-auth-code-flow.md) we displayed the 'logged
-in as' username using the ID-token claim
-`preferred_username`. Normally clients will use the `/userinfo`
-endpoints to retrieve the above information and use that
-instead. ID-tokens are only required to contain a few claims such as
-`sub` (subject), which can be pretty anonymous.
+Compare the information we got above with the content of the ID token:
 
 ```console
-curl --data "client_id=$CLIENT_ID&client_secret=$CLIENT_SECRET&token=$ACCESS_TOKEN" $INTROSPECTION_EP | jq .
+echo -n $ID_TOKEN | cut -d. -f2 | base64 -d | jq .
+```
+
+The ID-token may contain the same claims as returned from the userinfo
+endpoint, however, this is not guaranteed. To keep the ID-token small,
+identity providers are allowed to only include a minimal set of claims
+in the ID-token, i.e. for a general OIDC-based client it is advised to
+rely on the userinfo endpoint for extended user information. See
+[ID-token](https://openid.net/specs/openid-connect-core-1_0.html#IDToken)
+and [Standard
+claims](https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims)
+for details.
+
+In exercise [Confidential Client with Authorization Code
+Flow](confidential-client-auth-code-flow.md) for simplicity we
+displayed the 'logged in as' username using the ID-token claim
+`preferred_username`. However, as noted above, ideally we should fetch
+this information from the userinfo endpoint.
+
+### Introspecting Tokens
+
+The identity provider allow us to query for information about the
+three tokens we got through an 'introspection endpoint'. We find the
+introspection endpoint using OIDC discovery as follows:
+
+```console
+export INTROSPECTION_EP=`curl -s https://keycloak.user$USER_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm/.well-known/openid-configuration | jq -r .introspection_endpoint`
+```
+
+Lets introspect our access and refresh tokens:
+
+```console
+curl --data "client_id=$CLIENT1_ID&client_secret=$CLIENT1_SECRET&token=$ACCESS_TOKEN" $INTROSPECTION_EP | jq .
 ```
 
 > If you get an error while using the access token, its most likely because the access token has expired. KeyCloak use a default timeout of 5 minutes. To solve this, use the client to logout and login again to get fresh tokens.
@@ -75,7 +113,7 @@ curl --data "client_id=$CLIENT_ID&client_secret=$CLIENT_SECRET&token=$ACCESS_TOK
 ```
 
 ```console
-curl --data "client_id=$CLIENT_ID&client_secret=$CLIENT_SECRET&token=$REFRESH_TOKEN" $INTROSPECTION_EP | jq .
+curl --data "client_id=$CLIENT1_ID&client_secret=$CLIENT1_SECRET&token=$REFRESH_TOKEN" $INTROSPECTION_EP | jq .
 ```
 
 ```
@@ -99,10 +137,18 @@ The token introspection endpoint returns a [standardized
 response](https://datatracker.ietf.org/doc/html/rfc7662#section-2.2)
 however, only the `active` field is guaranteed in the response.
 
+#### Is the Access Token a JWT?
+
+TODO...
+
+```console
+echo -n $ACCESS_TOKEN | cut -d. -f2 | base64 -d | jq .
+```
+
 ### Refreshing Tokens
 
 With the refresh token, we can refresh our access token (and possibly
-the ID-token and the refresh token as well). This is done through the
+ID-token and refresh token as well). This is done through the
 token endpoint. As from the previous exercise, store the identity
 provider token endpoint in an environment variable:
 
@@ -113,13 +159,32 @@ export OIDC_TOKEN_URL=`curl -s https://keycloak.user$USER_NUM.$TRAINING_NAME.efi
 Next, issue a refresh request using `grant_type=refresh_token` and specifying the current refresh token:
 
 ```console
-curl --data "client_id=$CLIENT_ID&client_secret=$CLIENT_SECRET&grant_type=refresh_token&refresh_token=$REFRESH_TOKEN" $OIDC_TOKEN_URL | jq .
+curl --data "client_id=$CLIENT1_ID&client_secret=$CLIENT1_SECRET&grant_type=refresh_token&refresh_token=$REFRESH_TOKEN" $OIDC_TOKEN_URL | jq .
 ```
 
 This request return at least a new access token. It may also return a
 new ID-token and refresh token, but this is not required by the OIDC
 standard. If new ID/refresh tokens are returned, they should be used
-going forward, and the old ones discarded.
+going forward, and the old ones discarded.  E.g. if we introspect the
+old access tokens which we have in the `ACCESS_TOKEN` environment
+variable:
+
+```console
+curl --data "client_id=$CLIENT1_ID&client_secret=$CLIENT1_SECRET&token=$ACCESS_TOKEN" $INTROSPECTION_EP | jq .
+```
+
+we should get the result that it is no longer active. Note that the
+old token might not be immediately made inactive, however, after a
+short while is should be inactive:
+
+```
+{
+  "active": false
+}
+```
+
+Here we refreshed the access token using just client credentials and
+without involving the user/browser.
 
 A new ID token does not signify that the user still has a login
 session through the browser. The client can continue to refresh tokens
@@ -164,11 +229,25 @@ Redirecting login to identity provider https://keycloak.userX..../openid-connect
 
 You will also see that as long as the user have a login session with
 KeyCloak, the silent authorization successfully issues a new
-ID-token. If you select `Logout` in the KeyCloak user session view,
-you will be prompted for login because the client observes an error in
-the authorization code flow.
+ID-token.
 
-Login can also be performed from the client-side. Again, the identity
+Try selecting `Logout` in the KeyCloak user session view.
+
+The client can detect the user logout at the identity provider by
+introspecting the tokens, e.g. here using the ID-token:
+
+```console
+export ID_TOKEN=<xxx>    # Update with newest ID token from client UI
+curl --data "client_id=$CLIENT1_ID&client_secret=$CLIENT1_SECRET&token=$ID_TOKEN" $INTROSPECTION_EP | jq .
+```
+
+If you retry 'Check Login Status' in the client you will now be
+prompted for full login because the client observes an error in the
+authorization code flow.
+
+### Client-side Logout
+
+Logout can also be performed from the client-side. Again, the identity
 provider provide an URL, which we can find from the OIDC
 configuration as `end_session_endpoint`:
 
@@ -180,19 +259,14 @@ Identity provider logout from the client is then achieved with an
 `id_token_hint` parameter to indicate who is logging out:
 
 ```console
+export ID_TOKEN=<xxx>    # Update with newest ID token from client UI
 curl "$OIDC_END_SESSION_EP?id_token_hint=$ID_TOKEN"
 ```
-
-
-
-
-
-
 
 ### Clean up
 
 ```console
-kubectl delete -f kubernetes/client1-v2.yaml
+kubectl delete -f kubernetes/client1.yaml
 kubectl delete secret client1
 kubectl delete configmap client1
 ```
