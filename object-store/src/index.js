@@ -8,7 +8,7 @@ const uuid = require('uuid');
 const { Issuer } = require('openid-client');
 
 const port = process.env.CLIENT_PORT || 5010;
-const oidc_issuer = process.env.OIDC_ISSUER;
+const oidc_issuer_url = process.env.OIDC_ISSUER_URL;
 
 const app = express();
 
@@ -21,7 +21,7 @@ app.use(express.json());
 app.use(logger('combined'));
 
 
-Issuer.discover(oidc_issuer)
+Issuer.discover(oidc_issuer_url)
     .then(function (issuer) {
 	console.log('Discovered issuer %s %O', issuer.issuer, issuer.metadata);
 
