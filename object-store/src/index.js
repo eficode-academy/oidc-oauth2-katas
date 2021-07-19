@@ -50,8 +50,6 @@ Issuer.discover(oidc_issuer_url)
 		 (req, res) => {
 		     const id = uuid.v4();
 		     objects[id] = req.body;
-		     console.log('body', req.body);
-		     console.log('xxx', objects);
 		     res.send(id);
 	});
 
