@@ -1,7 +1,5 @@
 const express = require('express');
-const bodyParser = require('body-parser');
 const logger = require('morgan');
-//const jsonwebtoken = require('jsonwebtoken');
 const jwksRsa = require('jwks-rsa');
 var jwt = require('express-jwt');
 const uuid = require('uuid');
@@ -15,9 +13,8 @@ const app = express();
 
 const objects = {};
 
-objects[uuid.v4()] = 'Test object'
+objects[uuid.v4()] = {title: 'Test object'}
 
-app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(logger('combined'));
 
@@ -48,14 +45,18 @@ Issuer.discover(oidc_issuer_url)
 	    }
 	}
 
-	app.post('/object', (req, res) => {
-	    const id = uuid.v4();
-	    objects[id] = req.body.object;
-	    res.send(id);
+	app.post('/object',
+		 //allowScope('xxx'),
+		 (req, res) => {
+		     const id = uuid.v4();
+		     objects[id] = req.body;
+		     console.log('body', req.body);
+		     console.log('xxx', objects);
+		     res.send(id);
 	});
 
 	app.get('/object/:id',
-		//allowScope('xxx'),
+		//allowScope('yyy'),
 		(req, res) => {
 		    const id = req.params.id;
 		    res.send(objects[id]);
