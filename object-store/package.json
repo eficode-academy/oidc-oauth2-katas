@@ -1,0 +1,37 @@
+{
+  "name": "object-store",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "watch": {
+    "start": {
+      "patterns": [
+        "src",
+        "src/views",
+        "src/static"
+      ],
+      "extensions": "js,html,css"
+    }
+  },
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "express": "^4.17.1",
+    "express-jwt": "^6.0.0",
+    "jsonwebtoken": "^8.5.1",
+    "jwks-rsa": "^2.0.4",
+    "morgan": "^1.10.0",
+    "openid-client": "^4.7.4",
+    "uuid": "^8.3.2"
+  },
+  "devDependencies": {
+    "npm-watch": "^0.10.0"
+  },
+  "scripts": {
+    "watch": "npm-watch",
+    "start": "node src/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
