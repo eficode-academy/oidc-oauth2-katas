@@ -7,6 +7,7 @@ var jwt = require('express-jwt');
 const uuid = require('uuid');
 const { Issuer } = require('openid-client');
 
+const env = process.env.NODE_ENV || 'production';
 const port = process.env.CLIENT_PORT || 5010;
 const oidc_issuer_url = process.env.OIDC_ISSUER_URL;
 
@@ -43,7 +44,7 @@ Issuer.discover(oidc_issuer_url)
 	    return function(req, res, next) {
 		console.log('Has auth.scope', req.auth.scope.split(" "), 'asked for scope', scope);
 		if (req.auth.scope.split(" ").includes(scope)) next();
-		else res.status(403).end('Authentication error');
+		else throw new Error('Insufficient scope');
 	    }
 	}
 
@@ -59,6 +60,12 @@ Issuer.discover(oidc_issuer_url)
 		    const id = req.params.id;
 		    res.send(objects[id]);
 		});
+
+	app.use(function (err, req, res, next) {
+	    if (err.name === 'UnauthorizedError') {
+		res.status(401).send('invalid token');
+	    }
+	});
 
 	app.listen(port, () => {
 	    console.log(`Object store listening on port ${port}!`);
