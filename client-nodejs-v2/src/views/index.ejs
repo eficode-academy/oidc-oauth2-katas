@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <link rel="stylesheet" type="text/css" href="{{client_stylefile}}">
+    <link rel="stylesheet" type="text/css" href="<%=client_stylefile%>">
   </head>
   <body>
-    <div class="header"><b>{{client_title}}</b></div>
+    <div class="header"><b><%=client_title%></b><%=client_title2%></div>
 
     <h2>Step 1: Login</h2>
 
@@ -21,9 +21,9 @@
 
     <p>Scopes are translated into 'claims' in the ID-token, i.e. metadata that the identity provider asserts are valid. See <a href="https://openid.net/specs/openid-connect-basic-1_0.html#StandardClaims">OIDC Claims</a> for a list of claims</p>
 
-    <p>This client identify itself as '<b>{{client_id}}</b>'. You will see this ID in the following login screen.</p>
+    <p>This client identify itself as '<b><%=client_id%></b>'. You will see this ID in the following login screen.</p>
 
-    <p>The client is configured with OIDC_AUTH_URL=<b>{{oidc_auth_url}}</b>. This is the authorization endpoint of the identity-provider which the client trusts for managing identities.</p>
+    <p>The client is configured with OIDC_ISSUER_URL=<b><%=oidc_issuer_url%></b>. This is the authorization endpoint of the identity-provider which the client trusts for managing identities.</p>
 
     <form action="/login" method="post">
       <label for="scope"><b>Scope</b></label>
