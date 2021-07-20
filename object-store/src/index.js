@@ -5,7 +5,6 @@ var jwt = require('express-jwt');
 const uuid = require('uuid');
 const { Issuer } = require('openid-client');
 
-const env = process.env.NODE_ENV || 'production';
 const port = process.env.CLIENT_PORT || 5010;
 const oidc_issuer_url = process.env.OIDC_ISSUER_URL;
 
@@ -37,16 +36,25 @@ Issuer.discover(oidc_issuer_url)
 	    res.send(Object.keys(objects));
 	});
 
-	function allowScope(scope) {
+	function allowScopes(wants) {
 	    return function(req, res, next) {
-		console.log('Has auth.scope', req.auth.scope.split(" "), 'asked for scope', scope);
-		if (req.auth.scope.split(" ").includes(scope)) next();
-		else throw new Error('Insufficient scope');
+		console.log('Have auth.scope', req.auth.scope.split(" "), 'wants', wants);
+		const have = req.auth.scope.split(" ");
+		for (const idx in wants) {
+		    if ( ! have.includes(wants[idx])) {
+			console.log('Missing scope', wants[idx]);
+			const err = new Error();
+			err.message = 'insufficient_scope'
+			err.status = 403;
+			next(err);
+		    }
+		}
+		next();
 	    }
 	}
 
 	app.post('/object',
-		 //allowScope('xxx'),
+		 //allowScopes(['xxx']),
 		 (req, res) => {
 		     const id = uuid.v4();
 		     objects[id] = req.body;
@@ -54,16 +62,18 @@ Issuer.discover(oidc_issuer_url)
 	});
 
 	app.get('/object/:id',
-		//allowScope('yyy'),
+		//allowScopes(['yyy']),
 		(req, res) => {
 		    const id = req.params.id;
 		    res.send(objects[id]);
 		});
 
 	app.use(function (err, req, res, next) {
+	    console.log('Error handler', err);
 	    if (err.name === 'UnauthorizedError') {
 		res.status(401).send('invalid token');
 	    }
+	    res.status(err.status).send(err);
 	});
 
 	app.listen(port, () => {
