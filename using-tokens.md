@@ -17,11 +17,30 @@
 
 - In bullets, what are you going to solve as a student
 
+### Deploy Client
+
+Create a Kubernetes `ConfigMap` and `Secret` for client configuration:
+
+```console
+kubectl create secret generic client1 \
+    --from-literal=client_id=$CLIENT1_ID \
+    --from-literal=client_secret=$CLIENT1_SECRET
+kubectl create configmap client1 \
+    --from-literal=oidc_issuer_url=$OIDC_ISSUER_URL  \
+    --from-literal=client_base_url=$CLIENT1_BASE_URL
+```
+
+and deploy the client:
+
+```console
+cd oidc-oauth2-katas/
+kubectl apply -f kubernetes/client1-v2.yaml
+```
+
 ### Using Tokens with Curl
 
-TODO: Redeploy client v1 app
-
-Do a login through the client to get fresh tokens and export them in the CLI:
+When the client POD is `Running`, do a login to get tokens and export
+them in the CLI:
 
 ```console
 export ID_TOKEN=<xxx>
@@ -266,7 +285,7 @@ curl "$OIDC_END_SESSION_EP?id_token_hint=$ID_TOKEN"
 ### Clean up
 
 ```console
-kubectl delete -f kubernetes/client1.yaml
+kubectl delete -f kubernetes/client1-v2.yaml
 kubectl delete secret client1
 kubectl delete configmap client1
 ```

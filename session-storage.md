@@ -23,7 +23,7 @@ export OIDC_ISSUER_URL=https://keycloak.user$USER_NUM.$TRAINING_NAME.eficode.aca
 
 ### Sessions are not Shared Across PODs
 
-Create a Kubernetes `ConfigMap` and `Secret` with this information:
+Create a Kubernetes `ConfigMap` and `Secret` for client configuration:
 
 ```console
 kubectl create secret generic client1 \
