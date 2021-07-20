@@ -86,9 +86,17 @@ https://client1.user<X>.<training-name>.eficode.academy
 After having created a client, we are presented with further details
 about the client. Scroll down and locate `Consent Required` and change
 it to `On`. Also locate `Access Type` and change it to `confidential`
-as shown below. Click save when you have change the access type.
+as shown below.
 
 > ![KeyCloak specify client data](images/keycloak-add-client-confidential-type-anno.png)
+
+Finally, open the `Advanced Setting` menu almost at the end of the
+page and change the `Access Toekn Lifespan` to 60 minutes as shown
+below:
+
+> ![KeyCloak token lifespan](images/keycloak-token-lifespan-anno.png)
+
+Click save at the end of the page.
 
 After having changed the client access type to `confidential`, we get
 a `Credentials` tab in the top menu. Select the `Credentials` tab.
