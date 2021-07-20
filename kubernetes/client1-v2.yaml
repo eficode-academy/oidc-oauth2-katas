@@ -35,7 +35,7 @@ spec:
         command: ["node", "src/client.js"]
         env:
         - name: CLIENT_TITLE
-          value: "Confidential Client1"
+          value: "Confidential Client1-v2"
         - name: CLIENT_ID
           valueFrom:
             secretKeyRef:
