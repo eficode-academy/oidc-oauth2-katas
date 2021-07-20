@@ -72,8 +72,9 @@ Issuer.discover(oidc_issuer_url)
 	    console.log('Error handler', err);
 	    if (err.name === 'UnauthorizedError') {
 		res.status(401).send('invalid token');
+	    } else {
+		res.status(err.status).send(err);
 	    }
-	    res.status(err.status).send(err);
 	});
 
 	app.listen(port, () => {
