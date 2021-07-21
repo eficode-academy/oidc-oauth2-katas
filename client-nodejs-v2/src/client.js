@@ -60,7 +60,7 @@ function isLoggedIn(req, res, next) {
     console.log('Check login of user', req.user);
     if ( ! req.user) {
         console.log('User not logged in');
-        return res.redirect(base_url);
+        return res.redirect(base_url+'/error');
     }
     next();
 }
@@ -129,7 +129,7 @@ Issuer.discover(oidc_issuer_url)
 
         // This actions checks login through a normal authorization code flow but with `prompt=none`
         app.post('/refresh', (req, res) => {
-            client.refresh(req.user.tokenSet.refresh_token).then(function (tokenSet) {
+            client.refresh(req.user.tokenSet.refresh_token).then((tokenSet) => {
                 console.log('new tokens', tokenSet);
                 req.user.tokenSet = tokenSet;
                 res.redirect('/user');
@@ -137,7 +137,7 @@ Issuer.discover(oidc_issuer_url)
         });
 
         // Show 'secret' information like tokens. Only shown to logged-in users
-        app.get('/user/', isLoggedIn, (req, res) => {
+        app.get('/user', isLoggedIn, (req, res) => {
             now = new Date(Date.now());
             console.log('User data', req.user);
             res.render('token', {'client_title': client_title,
