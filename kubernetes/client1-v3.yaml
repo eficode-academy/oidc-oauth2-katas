@@ -32,8 +32,11 @@ spec:
       containers:
       - image: node:16.4.2-alpine3.12
         name: client
+        #command: ["npm", "run", "watch"]
         command: ["node", "src/client.js"]
         env:
+        - name: NODE_ENV
+          value: "development"
         - name: CLIENT_TITLE
           value: "Confidential Client1-v3"
         - name: CLIENT_ID
@@ -51,6 +54,8 @@ spec:
             configMapKeyRef:
               name: client1
               key: client_base_url
+        - name: SESSION_SECRET
+          value: "CloakAndDaggers"
         - name: OIDC_ISSUER_URL
           valueFrom:
             configMapKeyRef:
