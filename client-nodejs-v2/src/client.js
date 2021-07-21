@@ -60,7 +60,7 @@ function isLoggedIn(req, res, next) {
     console.log('Check login of user', req.user);
     if ( ! req.user) {
         console.log('User not logged in');
-        return res.redirect(base_url+'/error');
+        return res.redirect(base_url);
     }
     next();
 }
