@@ -3,25 +3,21 @@ const path = require('path');
 const express = require('express');
 const session = require('express-session');
 const redis = require('redis')
-
 const passport = require('passport');
 const bodyParser = require('body-parser');
 const logger = require('morgan');
 const { Issuer, Strategy } = require('openid-client');
+const randomstring = require('randomstring');
 
 const client_title = process.env.CLIENT_TITLE || 'Confidential Client';
 const client_stylefile = process.env.CLIENT_STYLEFILE || 'style.css';
 const port = process.env.CLIENT_PORT || 5000;
 const base_url = process.env.CLIENT_BASE_URL || 'http://localhost:' + port
-
-const app = express();
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'ejs');
-
 const client_id = process.env.CLIENT_ID;
 const client_secret = process.env.CLIENT_SECRET;
 const oidc_issuer_url = process.env.OIDC_ISSUER_URL;
 const redis_url = process.env.REDIS_URL;
+const session_secret = process.env.SESSION_SECRET || randomstring.generate(32);
 const hostname = os.hostname();
 
 console.log('CLIENT_BASE_URL', base_url);
@@ -30,20 +26,30 @@ console.log('CLIENT_SECRET', client_secret);
 console.log('OIDC_ISSUER_URL', oidc_issuer_url);
 console.log('REDIS_URL', redis_url);
 
+const app = express();
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'ejs');
+
 app.use(logger('combined'));
 app.use(express.static('src/static'));
+const session_config = { secret: session_secret,
+			 resave: false,
+			 saveUninitialized: false };
+if (app.get('env') === 'production') {
+  app.set('trust proxy', 1)
+  session_config.cookie.secure = true
+}
 if (redis_url) {
     console.log('Using Redis session store');
     const RedisStore = require('connect-redis')(session)
-    const redisClient = redis.createClient({ url: redis_url })
-    app.use(session({ secret: "mySessionSecret",
-                      resave: false, saveUninitialized: false,
-                      store: new RedisStore({ client: redisClient }), }));
+    const redisClient = redis.createClient({ url: redis_url });
+    session_config.store = new RedisStore({ client: redisClient,
+					    ttl: 60*60*12  // Seconds
+					  });
 } else {
     console.log('Using Memory session store');
-    app.use(session({ secret: "mySessionSecret",
-                      resave: false, saveUninitialized: false}));
 }
+app.use(session(session_config));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(passport.initialize());
