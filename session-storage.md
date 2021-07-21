@@ -3,6 +3,8 @@
 ## Learning Goals
 
 - How to add horisontal scalability by using an independent session storage
+- See the login and logged-in experience without a shared session storage
+- Inspect data in session storage and correlate with browser cookies
 
 ## Introduction
 
@@ -200,3 +202,9 @@ this.
 </details>
 
 ### Clean up
+
+```console
+kubectl delete -f kubernetes/client1-v3.yaml
+kubectl delete secret client1
+kubectl delete configmap client1
+```
