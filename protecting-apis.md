@@ -2,8 +2,9 @@
 
 ## Learning Goals
 
-- Protecting APIs with access tokens
+- Protecting a REST API with access tokens
 - Fine-grained access control with token scopes
+- Adding custom scopes in KeyCloak
 
 ## Introduction
 
@@ -238,7 +239,7 @@ cp` to update the API POD.
 
 Retry the get-by-id operation, which should now succeed.
 
-Optionally, add the `:write` scope to the object `POST` method in the API.
+Optionally, add the `:write` scope to the object-store `POST` method in the API.
 
 ### Clean up
 
