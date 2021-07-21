@@ -43,6 +43,9 @@ if (redis_url) {
     console.log('Using Redis session store');
     const RedisStore = require('connect-redis')(session)
     const redisClient = redis.createClient({ url: redis_url });
+    redisClient.on('connect', () => { console.log('Redis connected'); });
+    redisClient.on('error', (err) => { console.log('Redis error', err); });
+    redisClient.on('reconnecting', () => { console.log('Redis reconnecting'); });
     session_config.store = new RedisStore({ client: redisClient,
 					    ttl: 60*60*12  // Seconds
 					  });
