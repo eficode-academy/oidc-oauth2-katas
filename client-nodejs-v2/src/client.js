@@ -123,7 +123,7 @@ Issuer.discover(oidc_issuer_url)
         });
 
         // End session and redirect to login page
-        app.post('/logout', (req, res) => {
+        app.post('/logout', isLoggedIn, (req, res) => {
             req.session.destroy((err) => {
                 res.redirect(client.endSessionUrl({ id_token_hint: req.user.tokenSet.id_token,
                                                     post_logout_redirect_uri: base_url}));
@@ -131,7 +131,7 @@ Issuer.discover(oidc_issuer_url)
         });
 
         // This actions checks login through a normal authorization code flow but with `prompt=none`
-        app.post('/refresh', (req, res) => {
+        app.post('/refresh', isLoggedIn, (req, res) => {
             client.refresh(req.user.tokenSet.refresh_token).then((tokenSet) => {
                 console.log('new tokens', tokenSet);
                 req.user.tokenSet = tokenSet;
