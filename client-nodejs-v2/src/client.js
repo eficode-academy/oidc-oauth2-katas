@@ -162,11 +162,13 @@ Issuer.discover(oidc_issuer_url)
 
         // Error handler
         app.use(function(err, req, res, next) {
-            console.log('Error handler', err);
-            res.locals.message = err.message;
-            res.locals.error = req.app.get('env') === 'development' ? err : {};
-            res.status(err.status || 500);
-            res.send(err);
+            console.error('Error handler', err);
+	    res.status(err.status || 500);
+	    if (req.app.get('env') === 'development') {
+		res.end(err.message);
+	    } else {
+		res.end('Error!');
+	    }
         });
     });
 
