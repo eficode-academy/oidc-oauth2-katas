@@ -36,6 +36,7 @@ Issuer.discover(oidc_issuer_url)
 	    res.send(Object.keys(objects));
 	});
 
+	// See also npm module 'express-jwt-authz'
 	function allowScopes(wants) {
 	    return function(req, res, next) {
 		console.log('Have auth.scope', req.auth.scope.split(" "), 'wants', wants);
