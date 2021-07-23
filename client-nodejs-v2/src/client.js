@@ -71,11 +71,11 @@ function isLoggedIn(req, res, next) {
 // Serve login page
 app.get('/', (req, res) => {
     now = new Date(Date.now());
-    res.render('index', {'client_title': client_title,
-                         'client_title2': ' ('+hostname+' @ '+now.toISOString()+')',
-                         'client_stylefile': client_stylefile,
-                         'client_id': client_id,
-                         'oidc_issuer_url': oidc_issuer_url});
+    res.render('index', {client_title: client_title,
+                         client_title2: ' ('+hostname+' @ '+now.toISOString()+')',
+                         client_stylefile: client_stylefile,
+                         client_id: client_id,
+                         oidc_issuer_url: oidc_issuer_url});
 });
 
 Issuer.discover(oidc_issuer_url)
@@ -143,14 +143,14 @@ Issuer.discover(oidc_issuer_url)
         app.get('/user', isLoggedIn, (req, res) => {
             now = new Date(Date.now());
             console.log('User data', req.user);
-            res.render('token', {'client_title': client_title,
-                                 'client_title2': ' ('+hostname+' @ '+now.toISOString()+')',
-                                 'client_stylefile': client_stylefile,
-                                 'username': req.user.userinfo.preferred_username,
-                                 'id_token': req.user.tokenSet.id_token,
-                                 'id_token_claims': JSON.stringify(req.user.claims, null, '  '),
-                                 'access_token':  req.user.tokenSet.access_token,
-                                 'refresh_token':  req.user.tokenSet.refresh_token
+            res.render('token', {client_title: client_title,
+                                 client_title2: ' ('+hostname+' @ '+now.toISOString()+')',
+                                 client_stylefile: client_stylefile,
+                                 username: req.user.userinfo.preferred_username,
+                                 id_token: req.user.tokenSet.id_token,
+                                 id_token_claims: JSON.stringify(req.user.claims, null, '  '),
+                                 access_token:  req.user.tokenSet.access_token,
+                                 refresh_token:  req.user.tokenSet.refresh_token
                                 });
             // setInterval(function () {
             //  console.log('Check id token is still valid using introspection...');

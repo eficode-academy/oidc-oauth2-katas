@@ -44,24 +44,24 @@ app.get('/', (req, res) => {
     if (id_token_claims) {
         return res.redirect(base_url+'/protected');
     }
-    res.render('index', {'client_title': client_title,
-                         'client_title2': '',
-                         'client_stylefile': client_stylefile,
-                         'client_id': client_id,
-                         'oidc_auth_url': oidc_auth_url});
+    res.render('index', {client_title: client_title,
+                         client_title2: '',
+                         client_stylefile: client_stylefile,
+                         client_id: client_id,
+                         oidc_auth_url: oidc_auth_url});
 });
 
 // Show 'secret' information like tokens. This client is not secure and stores login-state
 // globally, so this is only for  demonstration purposes
 app.get('/protected/', (req, res) => {
-    res.render('token', {'client_title': client_title,
-                         'client_title2': '',
-                         'client_stylefile': client_stylefile,
-                         'username': id_token_claims.preferred_username,
-                         'id_token': id_token,
-                         'id_token_claims': JSON.stringify(id_token_claims, null, '  '),
-                         'access_token': access_token,
-                         'refresh_token': refresh_token });
+    res.render('token', {client_title: client_title,
+                         client_title2: '',
+                         client_stylefile: client_stylefile,
+                         username: id_token_claims.preferred_username,
+                         id_token: id_token,
+                         id_token_claims: JSON.stringify(id_token_claims, null, '  '),
+                         access_token: access_token,
+                         refresh_token: refresh_token });
 });
 
 // First step in an authorization code flow login. Redirect to Identity provider (IdP).
@@ -72,12 +72,12 @@ app.post('/login', (req, res) => {
     console.log('Using scope', scope, 'state', state, 'nonce', nonce);
 
     let url = oidc_auth_url + '?' + querystring.encode({
-        'response_type': 'code',               // Use authorization code flow
-        'client_id': client_id,                // This is who we are
-        'scope': scope,                        // What we 'want'
-        'redirect_uri': base_url+'/callback',  // Call us here when login done at IdP
-        'state': state,                        // For our own use, if we need it and for protection
-        'nonce': nonce                         // Replay protection, echoed in id_token
+        response_type: 'code',               // Use authorization code flow
+        client_id: client_id,                // This is who we are
+        scope: scope,                        // What we 'want'
+        redirect_uri: base_url+'/callback',  // Call us here when login done at IdP
+        state: state,                        // For our own use, if we need it and for protection
+        nonce: nonce                         // Replay protection, echoed in id_token
     });
     console.log('Redirecting login to identity provider', url);
     res.redirect(url);
@@ -109,9 +109,9 @@ app.get('/callback', (req, res) => {
     // This is a confidential client - authorize towards IdP with client id and secret
     const client_creds = 'Basic ' + Buffer.from(querystring.escape(client_id)+':'+querystring.escape(client_secret), 'ascii').toString('base64')
     const data = querystring.encode({
-        'code': code,
-        'grant_type': 'authorization_code',
-        'redirect_uri': base_url+'/callback'});
+        code: code,
+        grant_type: 'authorization_code',
+        redirect_uri: base_url+'/callback'});
     const options = {
         method: 'POST',
         headers: {
@@ -169,14 +169,14 @@ app.post('/checklogin', (req, res) => {
     console.log('Using scope', scope, 'state', state, 'nonce', nonce);
 
     let url = oidc_auth_url + '?' + querystring.encode({
-        'response_type': 'code',               // Use authorization code flow
-        'client_id': client_id,                // This is who we are
-        'scope': scope,                        // What we 'want'
-        'redirect_uri': base_url+'/callback',  // Call us here when login done at IdP
-        'state': state,                        // For our own use, if we need it and for protection
-        'nonce': nonce,                        // Replay protection, echoed in id_token
-        'id_token_hint': id_token,             // Check login for this identity
-        'prompt': 'none'                       // Don't query user for username/password
+        response_type: 'code',               // Use authorization code flow
+        client_id: client_id,                // This is who we are
+        scope: scope,                        // What we 'want'
+        redirect_uri: base_url+'/callback',  // Call us here when login done at IdP
+        state: state,                        // For our own use, if we need it and for protection
+        nonce: nonce,                        // Replay protection, echoed in id_token
+        id_token_hint: id_token,             // Check login for this identity
+        prompt: 'none'                       // Don't query user for username/password
     });
     console.log('Redirecting login to identity provider', url);
     res.redirect(url);
