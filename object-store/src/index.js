@@ -30,6 +30,9 @@ Issuer.discover(oidc_issuer_url)
 	    }),
 	    algorithms: [ 'RS256' ],
 	    requestProperty: 'auth'
+	    // Here we could check more 'static' properties
+	    // audience: ...
+	    // issuer: ...
 	}));
 
 	app.get('/objects', (req, res) => {
