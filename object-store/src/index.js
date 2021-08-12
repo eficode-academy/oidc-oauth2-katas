@@ -30,12 +30,16 @@ Issuer.discover(oidc_issuer_url)
 	    }),
 	    algorithms: [ 'RS256' ],
 	    requestProperty: 'auth'
+	    // Here we could check more 'static' properties
+	    // audience: ...
+	    // issuer: ...
 	}));
 
 	app.get('/objects', (req, res) => {
 	    res.send(Object.keys(objects));
 	});
 
+	// See also npm module 'express-jwt-authz'
 	function allowScopes(wants) {
 	    return function(req, res, next) {
 		console.log('Have auth.scope', req.auth.scope.split(" "), 'wants', wants);
