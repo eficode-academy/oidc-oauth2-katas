@@ -109,7 +109,7 @@ app.get('/callback', (req, res) => {
     };
 
     console.log('POST to', oidc_token_url);
-    console.log(' using options', option);
+    console.log(' using options', options);
     console.log(' using data', data);
     
     // Exchange code for tokens using the token endpoint
