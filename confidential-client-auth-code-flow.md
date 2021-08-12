@@ -4,7 +4,7 @@
 
 - Hands-on with the requests and responses of the authorization code flow
 - Configure a confidential client to work with an OIDC identity provider
-- Using the OIDC configuration endpoint
+- Using the OIDC discovery endpoint
 - Decoding ID-tokens/JWTs
 - Understanding the Context of a login-session
 - Investigate identity provider session cookies
