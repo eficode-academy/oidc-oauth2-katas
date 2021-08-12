@@ -21,69 +21,69 @@ app.use(logger('combined'));
 // OIDC discovery to locate the JWKS URI used to validate JWTs
 Issuer.discover(oidc_issuer_url)
     .then(function (issuer) {
-	console.log('Discovered issuer %s %O', issuer.issuer, issuer.metadata);
+        console.log('Discovered issuer %s %O', issuer.issuer, issuer.metadata);
 
         // Install JWT middleware using 'issuer.jwks_uri' and caching of keys
-	app.use(jwt({
-	    secret: jwksRsa.expressJwtSecret({
-		jwksUri: issuer.jwks_uri,
-		cache: true,  // Enable JWT key cache
-		timeout: 3600 // Key cache timeout, seconds
-	    }),
-	    algorithms: [ 'RS256' ],
-	    requestProperty: 'auth'
-	    // Here we could check more 'static' properties
-	    // audience: ...
-	    // issuer: ...
-	}));
+        app.use(jwt({
+            secret: jwksRsa.expressJwtSecret({
+                jwksUri: issuer.jwks_uri,
+                cache: true,  // Enable JWT key cache
+                timeout: 3600 // Key cache timeout, seconds
+            }),
+            algorithms: [ 'RS256' ],
+            requestProperty: 'auth'
+            // Here we could check more 'static' properties
+            // audience: ...
+            // issuer: ...
+        }));
 
-	app.get('/objects', (req, res) => {
-	    res.send(Object.keys(objects));
-	});
+        app.get('/objects', (req, res) => {
+            res.send(Object.keys(objects));
+        });
 
-	// See also npm module 'express-jwt-authz' which implements something similar
-	function allowScopes(wants) {
-	    return function(req, res, next) {
-		console.log('Have auth.scope', req.auth.scope.split(" "), 'wants', wants);
-		const have = req.auth.scope.split(" ");
-		for (const idx in wants) {
-		    if ( ! have.includes(wants[idx])) {
-			console.log('Missing scope', wants[idx]);
-			const err = new Error();
-			err.message = 'insufficient_scope'
-			err.status = 403;
-			next(err);
-		    }
-		}
-		next();
-	    }
-	}
+        app.post('/object',
+                 //allowScopes(['xxx']),
+                 (req, res) => {
+                     const id = uuid.v4();
+                     objects[id] = req.body;
+                     res.send(id);
+        });
 
-	app.post('/object',
-		 //allowScopes(['xxx']),
-		 (req, res) => {
-		     const id = uuid.v4();
-		     objects[id] = req.body;
-		     res.send(id);
-	});
+        app.get('/object/:id',
+                //allowScopes(['yyy']),
+                (req, res) => {
+                    const id = req.params.id;
+                    res.send(objects[id]);
+                });
 
-	app.get('/object/:id',
-		//allowScopes(['yyy']),
-		(req, res) => {
-		    const id = req.params.id;
-		    res.send(objects[id]);
-		});
+        app.use(function (err, req, res, next) {
+            console.log('Error handler', err);
+            if (err.name === 'UnauthorizedError') {
+                res.status(401).send('invalid token');
+            } else {
+                res.status(err.status).send(err);
+            }
+        });
 
-	app.use(function (err, req, res, next) {
-	    console.log('Error handler', err);
-	    if (err.name === 'UnauthorizedError') {
-		res.status(401).send('invalid token');
-	    } else {
-		res.status(err.status).send(err);
-	    }
-	});
+        // See also npm module 'express-jwt-authz' which implements something similar
+        function allowScopes(wants) {
+            return function(req, res, next) {
+                console.log('Have auth.scope', req.auth.scope.split(" "), 'wants', wants);
+                const have = req.auth.scope.split(" ");
+                for (const idx in wants) {
+                    if ( ! have.includes(wants[idx])) {
+                        console.log('Missing scope', wants[idx]);
+                        const err = new Error();
+                        err.message = 'insufficient_scope'
+                        err.status = 403;
+                        next(err);
+                    }
+                }
+                next();
+            }
+        }
 
-	app.listen(port, () => {
-	    console.log(`Object store listening on port ${port}!`);
-	});
+        app.listen(port, () => {
+            console.log(`Object store listening on port ${port}!`);
+        });
     });
