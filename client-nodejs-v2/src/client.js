@@ -130,7 +130,7 @@ Issuer.discover(oidc_issuer_url)
             });
         });
 
-        // This actions checks login through a normal authorization code flow but with `prompt=none`
+        // Perform token refresh
         app.post('/refresh', isLoggedIn, (req, res) => {
             client.refresh(req.user.tokenSet.refresh_token).then((tokenSet) => {
                 console.log('new tokens', tokenSet);

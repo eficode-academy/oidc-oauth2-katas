@@ -18,15 +18,17 @@ app.use(express.json());
 app.use(logger('combined'));
 
 
+// OIDC discovery to locate the JWKS URI used to validate JWTs
 Issuer.discover(oidc_issuer_url)
     .then(function (issuer) {
 	console.log('Discovered issuer %s %O', issuer.issuer, issuer.metadata);
 
+        // Install JWT middleware using 'issuer.jwks_uri' and caching of keys
 	app.use(jwt({
 	    secret: jwksRsa.expressJwtSecret({
 		jwksUri: issuer.jwks_uri,
-		cache: true,
-		timeout: 3600 // Seconds
+		cache: true,  // Enable JWT key cache
+		timeout: 3600 // Key cache timeout, seconds
 	    }),
 	    algorithms: [ 'RS256' ],
 	    requestProperty: 'auth'
@@ -39,7 +41,7 @@ Issuer.discover(oidc_issuer_url)
 	    res.send(Object.keys(objects));
 	});
 
-	// See also npm module 'express-jwt-authz'
+	// See also npm module 'express-jwt-authz' which implements something similar
 	function allowScopes(wants) {
 	    return function(req, res, next) {
 		console.log('Have auth.scope', req.auth.scope.split(" "), 'wants', wants);
