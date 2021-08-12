@@ -51,19 +51,6 @@ app.get('/', (req, res) => {
                          oidc_auth_url: oidc_auth_url});
 });
 
-// Show 'secret' information like tokens. This client is not secure and stores login-state
-// globally, so this is only for  demonstration purposes
-app.get('/protected/', (req, res) => {
-    res.render('token', {client_title: client_title,
-                         client_title2: '',
-                         client_stylefile: client_stylefile,
-                         username: id_token_claims.preferred_username,
-                         id_token: id_token,
-                         id_token_claims: JSON.stringify(id_token_claims, null, '  '),
-                         access_token: access_token,
-                         refresh_token: refresh_token });
-});
-
 // First step in an authorization code flow login. Redirect to Identity provider (IdP).
 app.post('/login', (req, res) => {
     scope = req.body.scope;
@@ -121,6 +108,10 @@ app.get('/callback', (req, res) => {
         }
     };
 
+    console.log('POST to', oidc_token_url);
+    console.log(' using options', option);
+    console.log(' using data', data);
+    
     // Exchange code for tokens using the token endpoint
     const post = https.request(oidc_token_url, options, (post_resp) => {
         console.log('statusCode:', post_resp.statusCode);
@@ -151,6 +142,22 @@ app.get('/callback', (req, res) => {
     });
     post.write(data);
     post.end();
+});
+
+// Show 'secret' information like tokens. This client is not secure and stores login-state
+// globally, so this is only for  demonstration purposes
+app.get('/protected/', (req, res) => {
+    if ( ! id_token_claims) {
+        return res.redirect(base_url);
+    }
+    res.render('token', {client_title: client_title,
+                         client_title2: '',
+                         client_stylefile: client_stylefile,
+                         username: id_token_claims.preferred_username,
+                         id_token: id_token,
+                         id_token_claims: JSON.stringify(id_token_claims, null, '  '),
+                         access_token: access_token,
+                         refresh_token: refresh_token });
 });
 
 app.post('/logout', (req, res) => {
