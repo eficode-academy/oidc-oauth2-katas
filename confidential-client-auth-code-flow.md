@@ -2,10 +2,11 @@
 
 ## Learning Goals
 
-- Configure a confidential client to work with an OIDC identity provider
 - Hands-on with the requests and responses of the authorization code flow
+- Configure a confidential client to work with an OIDC identity provider
+- Using the OIDC configuration endpoint
 - Decoding ID-tokens/JWTs
-- What is the Context of a login-session
+- Understanding the Context of a login-session
 - Investigate identity provider session cookies
 - Single-sign-on (SSO) using a second client
 
@@ -24,7 +25,7 @@ users through the identity provider. See e.g. [Setting up
 KeyCloak](setting-up-keycloak.md) for how to configure KeyCloak for
 this exercise.
 
-Specifically you will need:
+Specifically we will obtain and configure the following properties:
 
 - A client ID
 - A client secret
@@ -32,10 +33,18 @@ Specifically you will need:
 - A token URL
 
 The two first you should know from your identity provider
-configuration (e.g. from setting up KeyCloak as described above).  The
-two latter will be obtained from our authorization server using 'OIDC
-Discovery' which is a mechanism to allow OIDC Authorization servers to
-publish information on well-known URLs.
+configuration (e.g. from setting up KeyCloak as described above).
+
+For convenience, export the settings as environment variables:
+
+```console
+export CLIENT1_ID=client1
+export CLIENT1_SECRET=<xxx>     # This is your client1 'credential'
+```
+
+The two URLs will be obtained from our authorization server using
+'OIDC Discovery' which is a mechanism to allow OIDC Authorization
+servers to publish information on well-known URLs.
 
 Assuming your KeyCloak instance is located at:
 
@@ -58,7 +67,7 @@ curl -s https://keycloak.user$USER_NUM.$TRAINING_NAME.eficode.academy/auth/realm
 curl -s https://keycloak.user$USER_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm/.well-known/openid-configuration | jq .token_endpoint
 ```
 
-For convenience you might want to export the settings as environment variables:
+Export the settings as environment variables:
 
 ```console
 export CLIENT1_ID=client1
@@ -74,7 +83,7 @@ described above, you are ready to deploy the client. To see the
 configured settings use:
 
 ```console
-env | egrep 'OIDC|CLIENT[12]_'
+env | egrep 'OIDC|CLIENT[12]_' | sort
 ```
 
 We will deploy the server-based client using Kubernetes and the client will be accessible at the URL below.
@@ -108,24 +117,21 @@ cd oidc-oauth2-katas
 kubectl apply -f kubernetes/client1.yaml
 ```
 
-```console
-kubectl logs -f -l app=client1 -c client
-```
-
 When the client POD is `Running`, visit the client at the URL you
 stored in `$CLIENT1_BASE_URL`. You should see something like:
 
 > ![Client1 login screen](images/client1-login-screen.png)
 
-This client explicitly shows the scope it will request from the
+This client explicitly shows the scopes it will request from the
 identity provider. Many clients do not show this to the end-user. The
 default scope `openid profile` means 'do an OIDC login and give us
 access to user profile'.
 
 Click login and you will be redirected to the identity provider where
 you can login. If you followed the [Setting up
-KeyCloak](setting-up-keycloak.md) guide, you will be presented with a
-consent screen:
+KeyCloak](setting-up-keycloak.md) guide, use the username and password
+you specified for the test user. Also, this guide enable consent,
+i.e. you will be presented with a consent screen:
 
 > ![Grant access to client1 screen](images/keycloak-grant-access-to-client1.png)
 
@@ -134,14 +140,14 @@ client/identity-provider setups include this, i.e. they will
 immediately issue tokens.
 
 When login are completed, you are redirected to the client, and the
-client will display the content of the ID token it received (i.e. the
+lient will display the content of the ID token it received (i.e. the
 'claims' which the identity provider asserts are true):
 
 > ![Client1 displays tokens](images/client1-token-screen.png)
 
 The client shows both the raw ID token and the decoded claims. We can
 decode the JWT token ourself using the command line. This is often
-useful during debugging sessions.  To decode the token manually, copy
+useful during debugging.  To decode the token manually, copy
 the raw token and store it in an environment variable:
 
 ```console
@@ -149,7 +155,7 @@ export IDTOKEN=<raw token data>
 echo $IDTOKEN | cut -d. -f2 | base64 -d | jq .
 ```
 
-> If you get an `base64: invalid input` warning from this command then its most likely because the base64 encoded data is not a multiple of 4 characters. I.e. the output if `cut` needs to be padded with a number of `=` characters. This warning is however, safe to ignore.
+> If you get an `base64: invalid input` warning from this command then its most likely because the base64 encoded data is not a multiple of 4 characters. I.e. the output from `cut` needs to be padded with a number of `=` characters. This warning is however, safe to ignore.
 
 ### How the Client Implemented the Authorization Code Flow
 
@@ -161,18 +167,77 @@ Now is a good time to investigate the [client code](client-nodejs/src/client.js)
 The application flow is:
 
 1. Initially [index.html](client-nodejs/src/views/index.html) is
-shown. This page have a form which posts to the clients `/login`
-endpoint.
+retrieved from the `/` path (look for a `// Serve login page`
+comment).
 
-2. The `/login` endpoint builds a URL for the identity provider
+2. The login page have an HTML form which `POST` to the client
+`/login` endpoint (look for a `// First step in an authorization code
+flow login` comment).
+
+3. The `/login` endpoint builds a URL for the identity provider
 authorization endpoint and redirects the browser there. A parameter to
 the identity provider is the clients `redirect_uri`, i.e. the client
-callback which the identity provider calls when login is complete.
+callback where the identity provider redirects when login is complete.
 
-3. In the client callback endpoint `/callback`, the client retrieves
-the `code` which the identity provider included and subsequently the
-client use the identity provider token endpoint to exchange the `code`
-for tokens.
+4. After Identity provider login we are redirected to the `/callback`
+client endpoint (look for a `// Second step, we get a callback from
+the IdP after a successful login.` comment)
+
+5. In the client `/callback` endpoint, the client retrieves the `code`
+which the identity provider included and subsequently the client use
+the identity provider token endpoint to exchange the `code` for tokens
+(look for a `// Exchange code for tokens using the token endpoint`
+comment).
+
+6. If the code-to-token exchange is successful, the client stores
+these as global variables and redirect to the client base URL `/`. At
+the base URL, if the client have tokens stored in global variables, it
+redirects to the `protected` endpoint and shows the content of the
+tokens. This is the page we saw above titled `Token Received by
+Client`.
+
+7. This completes an OIDC login using the authorization code flow.
+
+### Login Observed from Client Logs
+
+We can match the above process with the logs from the client. To
+inspect the client logs, use the following command:
+
+```console
+kubectl logs -f --tail=-1 -l app=client1 -c client |less
+```
+
+The login redirection to the identity provider can be seen from the
+line staring with:
+
+```
+Redirecting login to identity provider ...
+```
+
+In the redirection, note how the authorization code flow is initiated
+with a parameter `response_type=code` and our client redirection URL
+are included in the request.
+
+When the login is completed at the identity provider, we are
+redirected to the client. Locate the line starting with:
+
+```
+GET /callback ...
+```
+
+In this callback we see a `state` parameter that matches the one we
+specified in the redirection to the identity provider above and we
+also get a new `code` parameter.
+
+The code-to-token exchange can be seen from the lines starting with:
+
+```
+POST to https://keycloak.user1 ...
+ using options ...
+ using data code= ...
+```
+
+Subsequent lines show the tokens received from the exchange.
 
 ### Identity Provider Session Cookies
 
@@ -187,11 +252,11 @@ kubectl apply -f kubernetes/client1.yaml
 
 Reload the client page again when the POD becomes `Running`. The
 client is not aware of the login session that exists between the
-browser and identity provider, i.e. you will have to clock `Login`
+browser and identity provider, i.e. you will have to select `Login`
 again. When you click `Login` you will notice that you are immediately
 logged in.
 
-> Note: If you are prompted for login information it might be because the login session has expired. KeyCloak use a default session timeout of 30 minutes. If this happens, redeploy the client once more and re-login using the fresh login session.
+> Note: If you are prompted for login information it might be because the login session has expired. KeyCloak use a session timeout of 30 minutes. If this happens, redeploy the client once more and re-login using the fresh login session.
 
 To see the cookies, which stores this session between browser and
 identity provider, open the identity provider authorization URL (the
@@ -214,20 +279,21 @@ you will be prompted for login information.
 <details>
 <summary>:bulb:What about 'consent'?</summary>
 
-You may notice, that you where not asked about consent once more. Identity providers typically only asks this initially and then stores the consent. You can find this in KeyCloak under `Users` and `Consent`.
+You may notice, that you where not asked about consent once more. Identity providers typically only asks this initially and then stores the consent. You can find this in KeyCloak under `Users` and `Consent`. Consent is an 'agreement' between you/browser and the identity provider. The second client reused that consent agreement.
 </details>
 
 <details>
 <summary>:bulb:The example clients does not use cookies. What are the security implications of this?</summary>
 
-The example clients use global variables to store tokens and does not set any browser cookies with e.g. session IDs. This means that there is no browser-to-client authentication and authorization. Anyone accessing the client can see the tokens!
+The example client use global variables to store tokens and does not set any browser cookies with e.g. session IDs. This means that there is no browser-to-client authentication and authorization. Anyone accessing the client can see the tokens!
 </details>
 
 ### Single Sign On (SSO)
 
 Since the user login sessions exists between browser and identity
-provider, OIDC supports single-sign-on. To demonstrate this, we deploy
-a second client similar to `client1`.
+provider and not between client(s) and identity provider, the setup
+supports single-sign-on. To demonstrate this, we deploy a second
+client similar to `client1`.
 
 Store `client2` information in environment variables (using the
 secret/credential for client2, not the one from client1):
@@ -271,4 +337,6 @@ kubectl delete -f kubernetes/client1.yaml
 kubectl delete -f kubernetes/client2.yaml
 kubectl delete secret client1
 kubectl delete configmap client1
+kubectl delete secret client2
+kubectl delete configmap client2
 ```
