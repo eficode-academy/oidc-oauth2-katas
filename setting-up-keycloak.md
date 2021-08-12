@@ -91,12 +91,12 @@ as shown below.
 > ![KeyCloak specify client data](images/keycloak-add-client-confidential-type-anno.png)
 
 Finally, open the `Advanced Setting` menu almost at the end of the
-page and change the `Access Toekn Lifespan` to 60 minutes as shown
+page and change the `Access Token Lifespan` to 60 minutes as shown
 below:
 
 > ![KeyCloak token lifespan](images/keycloak-token-lifespan-anno.png)
 
-Click save at the end of the page.
+Click `Save` at the end of the page.
 
 After having changed the client access type to `confidential`, we get
 a `Credentials` tab in the top menu. Select the `Credentials` tab.
