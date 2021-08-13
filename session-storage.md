@@ -3,7 +3,7 @@
 ## Learning Goals
 
 - How to add horisontal scalability by using an independent session storage
-- See the login and logged-in experience without a shared session storage
+- See the login and logged-in experience with and without a shared session storage
 - Inspect data in session storage and correlate with browser cookies
 
 ## Introduction
