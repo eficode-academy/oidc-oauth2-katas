@@ -7,4 +7,5 @@ Exercises for the [Eficode Academy](https://www.eficode.com/academy) OIDC/OAuth2
 - [Confidential Client with Authorization Code Flow](confidential-client-auth-code-flow.md)
 - [Using Tokens](using-tokens.md)
 - [Protecting Resources and APIs](protecting-apis.md)
+- [WIP: Using Authorizing Proxies](authorizing-proxy.md)
 - [Session Storage](session-storage.md)
