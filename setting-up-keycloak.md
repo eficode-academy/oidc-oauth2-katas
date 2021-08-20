@@ -44,6 +44,8 @@ Select `Users` in the left-hand menu and then `Add user` in the right-hand side:
 
 Enter username, email, first and last name. Also, check the `Email Verified` toggle:
 
+> Note the example user email domain `example.com` - please do the same as we will use this later for verification.
+
 > ![KeyCloak specify user data](images/keycloak-add-user2-anno.png)
 
 When done configuring the user, click `Save`.
