@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  </head>
+  <body onload="document.forms[0].submit()">
+    <form action="<%=legit_client_url%>/object" method="post">
+      <input type="text" placeholder="Enter content" name="content" value="<%=object_content%>" size="50" required>
+      <button type="submit">Create object</button>
+    </form>
+  </body>
+</html>
