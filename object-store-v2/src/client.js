@@ -25,6 +25,7 @@ objects[uuid.v4()] = {title: 'Test object'}
 
 // Serve front page
 app.get('/', (req, res) => {
+    console.log('Headers in request:', req.headers)
     const username = req.headers['X-Forwarded-Preferred-Username']
     res.render('index', {client_title,
 			 client_stylefile,
