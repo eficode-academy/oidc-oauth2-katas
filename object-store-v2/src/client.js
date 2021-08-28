@@ -5,7 +5,7 @@ const bodyParser = require('body-parser');
 const logger = require('morgan');
 const uuid = require('uuid');
 
-const client_title = process.env.CLIENT_TITLE || 'Protected API';
+const client_title = process.env.CLIENT_TITLE || 'Object Store v2';
 const client_stylefile = process.env.CLIENT_STYLEFILE || 'style.css';
 const port = process.env.CLIENT_PORT || 5000;
 
