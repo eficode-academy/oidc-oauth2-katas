@@ -23,7 +23,8 @@ app.use(express.json());
 // Serve front page
 app.get('/', (req, res) => {
     res.render('index', {client_title,
-			 client_stylefile});
+			 client_stylefile,
+			 legit_client_url: legit_client_url});
 });
 
 app.get('/roguelink', (req, res) => {
