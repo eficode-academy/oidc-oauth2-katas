@@ -8,19 +8,19 @@
 
     <h2>Store Objects</h2>
 
-    <p>Welcome <%=username%></p>
+    <p>Welcome <b><%=username%><b></p>
     
-    <p>This interface allow you to create and store objects.  Create object below...</p>
+    <p>This interface allow you to create and store objects.</p>
 
     <form action="/object" method="post">
       <input type="text" placeholder="Enter content" name="content" size="50" required>
       <button type="submit">Create object</button>
     </form>
 
-    <p>There are already <%=Object.keys(objects).length%> objects in the store:</p>
+    <p>There are already <%=Object.keys(objects).length%> object(s) in the store:</p>
 
     <% for (let [key, value] of Object.entries(objects)) { %>
-    <div class="framed verbatim"><p><%=key%>: <b><%=JSON.stringify(value)%></b></p></div>
+    <div class="framed verbatim"><p><%=key%>   <b><%=JSON.stringify(value)%></b></p></div>
     <% } %>
 
   </body>
