@@ -20,7 +20,7 @@
     <p>There are already <%=Object.keys(objects).length%> objects in the store:</p>
 
     <% for (let [key, value] of Object.entries(objects)) { %>
-    <div class="framed verbatim"><p><%=key%>: <%=JSON.stringify(value)%></p></div>
+    <div class="framed verbatim"><p><%=key%>: <b><%=JSON.stringify(value)%></b></p></div>
     <% } %>
 
   </body>
