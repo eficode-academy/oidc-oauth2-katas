@@ -2,3 +2,5 @@
 client-nodejs/node_modules
 client-nodejs-v2/node_modules
 object-store/node_modules
+object-store-v2/node_modules
+hazard-service/node_modules

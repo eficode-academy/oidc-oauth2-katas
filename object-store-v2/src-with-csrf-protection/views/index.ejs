@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="stylesheet" type="text/css" href="<%=client_stylefile%>">
+  </head>
+  <body>
+    <div class="header"><b><%=client_title%></b></div>
+
+    <h2>Store Objects</h2>
+
+    <p>Welcome <b><%=username%></b></p>
+    
+    <p>This interface allow you to create and store objects.</p>
+
+    <form action="/object" method="post">
+      <input type="hidden" name="csrf-nonce" value="<%=csrf%>">
+      <input type="text" placeholder="Enter content" name="content" size="50" required>
+      <button type="submit">Create object</button>
+    </form>
+
+    <p>There are already <%=Object.keys(objects).length%> object(s) in the store:</p>
+
+    <% for (let [key, value] of Object.entries(objects)) { %>
+    <div class="framed verbatim"><p><%=key%>   <b><%=JSON.stringify(value)%></b></p></div>
+    <% } %>
+
+  </body>
+</html>
