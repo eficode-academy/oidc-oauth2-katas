@@ -6,6 +6,6 @@ config:
     oidc_issuer_url = "$OIDC_ISSUER_URL"
     redirect_url = "$OAUTH2_PROXY_EP/oauth2/callback"
     email_domains = [ "example.com" ]
-    upstreams = [ "http://httpbin:80" ]
-    cookie_secure = false
-    cookie_httponly = false
+    upstreams = [ "$OAUTH2_PROXY_UPSTREAM" ]
+    cookie_secure = true
+    cookie_httponly = true

@@ -67,8 +67,10 @@ Select `Clients` in the left-hand menu and click `Create`:
 Next, give the client an ID, e.g. `client1` and add a root URL of
 the application. Click `Save` when you have added client settings.
 
+> We will be using the names `client1` and `client2` in the exercises in this repository. If you choose other names you will have to adjust the exercises accordingly.
+
 <details>
-<summary>:bulb:Which client root URL should I use?</summary>
+<summary>:bulb:Which client URLs should I use?</summary>
 
 The client root URL depends on where you run the client application
 and how you access it from your browser. If you use your laptop
@@ -81,6 +83,13 @@ and `<training-name>` as above):
 ```
 https://client1.user<X>.<training-name>.eficode.academy
 ```
+
+Similarly, create a 'valid redirect URI' by adding a `/*` to the client URL, e.g.:
+
+```
+https://client1.user<X>.<training-name>.eficode.academy/*
+```
+
 </details>
 
 > ![KeyCloak specify client data](images/keycloak-add-client2-anno.png)
