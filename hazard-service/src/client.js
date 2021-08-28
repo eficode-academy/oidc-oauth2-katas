@@ -8,7 +8,7 @@ const uuid = require('uuid');
 const client_title = process.env.CLIENT_TITLE || 'Hazard Service';
 const client_stylefile = process.env.CLIENT_STYLEFILE || 'style.css';
 const port = process.env.CLIENT_PORT || 5000;
-const legit_client_url = process.env.LEGIT_CLIENT_URL || 'http://localhost:5000';
+const legit_client_url = process.env.LEGIT_CLIENT_URL;
 
 const app = express();
 app.set('views', path.join(__dirname, 'views'));
@@ -30,7 +30,8 @@ app.get('/', (req, res) => {
 app.get('/roguelink', (req, res) => {
     now = new Date(Date.now());
     res.render('roguelink', {client_title,
-			     client_stylefile});
+			     client_stylefile,
+			     legit_client_url: legit_client_url});
 });
 
 app.get('/roguepost', (req, res) => {
