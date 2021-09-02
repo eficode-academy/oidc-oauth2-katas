@@ -2,6 +2,7 @@ const os = require("os");
 const path = require('path');
 const express = require('express');
 const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser')
 const logger = require('morgan');
 const uuid = require('uuid');
 
@@ -17,6 +18,7 @@ app.use(logger('combined'));
 app.use(express.static('src/static'));
 
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(cookieParser());
 app.use(express.json());
 
 const objects = {};
