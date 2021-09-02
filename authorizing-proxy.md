@@ -2,7 +2,8 @@
 
 ## Learning Goals
 
-- provide a list of goals to learn here
+- Understand and use the *authorizing proxy* architectural pattern
+- Deploy [OAuth2 proxy](https://github.com/oauth2-proxy/oauth2-proxy) with Helm configured to authenticate users from an OIDC provider.
 
 ## Introduction
 
@@ -56,18 +57,18 @@ proxy and the proxy should only allow authorized access the httpbin.
 Next we deploy OAuth2 proxy in front of httpbin to provide this
 external access.
 
-First, set some variables that help us build URLs:
+Next, set some environment variables with your personal values:
 
 ```console
 export USER_NUM=<X>             # Use your assigned user number
 export TRAINING_NAME=<xxx>      # Get this from your trainer
+export CLIENT1_ID=client1       # Change this if you didn't use this client name
+export CLIENT1_SECRET=<xxx>     # This is your client1 'credential'
 ```
 
-For convenience, set the following variables:
+From the values above, define the following environment variable:
 
 ```console
-export CLIENT1_ID=client1
-export CLIENT1_SECRET=<xxx>     # This is your client1 'credential'
 export OIDC_ISSUER_URL=https://keycloak.user$USER_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm
 ```
 
@@ -77,7 +78,7 @@ OAuth2 proxy) to be the DNS name `httpbin`, which is only
 available/resolvable inside the Kubernetes cluster. I.e. setup the to
 URLs as environment variables:
 
-> In real production environments you would probably not use a DNS name like `oauth2-proxy`. Instead you would probably make the proxy available at the client DNS name such that its naturally integrated in the application. Additionally you could [add a theme](https://github.com/MichaelVL/oauth2-proxy-themed) to the proxy.
+> In real production environments you would probably not use a DNS name like `oauth2-proxy`. Instead you would make the proxy available at the client DNS name such that its naturally integrated in the application. Additionally you could [add a theme](https://github.com/MichaelVL/oauth2-proxy-themed) to the proxy.
 
 ```console
 export OAUTH2_PROXY_EP=https://oauth2-proxy.user$USER_NUM.$TRAINING_NAME.eficode.academy
