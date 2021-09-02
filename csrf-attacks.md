@@ -162,8 +162,24 @@ separate console to see API log output:
 kubectl logs -f -l app=object-store-v2
 ```
 
+<details>
+<summary>I don't want to change any source code !</summary>
+Fear not. The changes described below are available with the katas. Below, when asked to deploy the changed code, use the following commands instead to deploy code that already have implemented the described protection:
 
+```
+kubectl cp object-store-v2/src-with-csrf-protection/views/index.ejs `kubectl get pods -l app=object-store-v2 -o=jsonpath='{.items[0].metadata.name}'`:/app/oidc-oauth2-katas/object-store-v2/src/views/
+kubectl cp object-store-v2/src-with-csrf-protection/client.js `kubectl get pods -l app=object-store-v2 -o=jsonpath='{.items[0].metadata.name}'`:/app/oidc-oauth2-katas/object-store-v2/src/
+```
+</details>
 
+The essence of the protection is to include some secret information in
+the form, which we can use to validate, that the POST operation stems
+from a valid form received from the protected object store. The hazard
+service cannot guess or fake this information.
+
+Open the source for the object store front page
+`object-store-v2/src/views/index.ejs` and add a hidden `csrf-nonce`
+input. This input will accompany all valid `POST` requests.
 
 ```
     <form action="/object" method="post">
@@ -173,18 +189,29 @@ kubectl logs -f -l app=object-store-v2
     </form>
 ```
 
-```
-// This is a too simplistic approach, however, it illustrates how
-// forms are modified to contains a CSRF nonce that proves the source
-// of the POST operation received the form from a valid client.
-// Real nonce's should be un-guessable, i.e. be dynamically created.
-const csrf_nonce = 'per-request-dynamic-hash';
+Open the object store Javascript `object-store-v2/src/client.js` and add
 
+1. Creation of a random per-requests nonce `csrf_nonce`
+2. Pass the `csrf_nonce` value to the rendering of the form above
+3. Set a cookie with the same `csrf_nonce` value. This is used to validate the nonce received from POST requests. Using a cookie makes the object store stateless.
+
+
+
+
+```
 // Serve front page
 app.get('/', (req, res) => {
     console.log('Headers in request:', req.headers)
     const username = req.headers['x-forwarded-preferred-username']
-    res.render('index', {client_title,
+
+    // Create a random nonce, that can be used to validate, proves the
+    // source of the POST request recevied the form from a valid
+    // client.  Real nonce's should be unguessable, i.e. be
+    // dynamically created.
+    const csrf_nonce = uuid.v4();
+
+    res.cookie('object-store-csrf', csrf_nonce, {secure: true, httpOnly: true})
+       .render('index', {client_title,
 			 client_stylefile,
 			 username,
 			 csrf: csrf_nonce,
@@ -192,9 +219,10 @@ app.get('/', (req, res) => {
 });
 
 app.post('/object', (req, res) => {
-    csrf = req.body['csrf-nonce'];
-    if (csrf != csrf_nonce) {
-	console.warn('Got CSRF nonce', csrf, 'expected', csrf_nonce);
+    csrf_nonce = req.body['csrf-nonce'];
+    csrf_cookie = req.cookies['object-store-csrf'];
+    if (csrf_nonce != csrf_cookie) {
+	console.warn('Got CSRF nonce', csrf_nonce, 'cookie', csrf_cookie);
     } else {
 	const id = uuid.v4();
 	objects[id] = req.body.content;
@@ -205,8 +233,7 @@ app.post('/object', (req, res) => {
 ```
 
 
-Next, use `kubectl cp` to copy the code changes to the running API
-POD:
+Next, use `kubectl cp` to copy the code changes to the running object store POD:
 
 ```console
 kubectl cp object-store-v2/src/views/index.ejs `kubectl get pods -l app=object-store-v2 -o=jsonpath='{.items[0].metadata.name}'`:/app/oidc-oauth2-katas/object-store-v2/src/views/
@@ -215,8 +242,10 @@ kubectl cp object-store-v2/src/client.js `kubectl get pods -l app=object-store-v
 
 After this, you will see from the log output, that the object store service is restarted.
 
-
-
+Finally, try to execute the attack as previously and simultaneously
+observe logs from the object store POD. You should see, that when you
+attempt the attack, the POST request is rejected due to a 'csrf nonce'
+mismatch.
 
 ### Clean up
 
