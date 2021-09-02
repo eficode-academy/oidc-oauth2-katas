@@ -2,6 +2,7 @@ const os = require("os");
 const path = require('path');
 const express = require('express');
 const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser')
 const logger = require('morgan');
 const uuid = require('uuid');
 
@@ -17,23 +18,26 @@ app.use(logger('combined'));
 app.use(express.static('src/static'));
 
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(cookieParser());
 app.use(express.json());
 
 const objects = {};
 
 objects[uuid.v4()] = {title: 'Test object'}
 
-// This is a too simplistic approach, however, it illustrates how
-// forms are modified to contains a CSRF nonce that proves the source
-// of the POST operation recevied the form from a valid client.
-// Real nonce's should be unguessable, i.e. be dynamically created.
-const csrf_nonce = 'per-request-dynamic-hash';
-
 // Serve front page
 app.get('/', (req, res) => {
     console.log('Headers in request:', req.headers)
     const username = req.headers['x-forwarded-preferred-username']
-    res.render('index', {client_title,
+
+    // Create a random nonce, that can be used to validate, proves the
+    // source of the POST request recevied the form from a valid
+    // client.  Real nonce's should be unguessable, i.e. be
+    // dynamically created.
+    const csrf_nonce = uuid.v4();
+
+    res.cookie('object-store-csrf', csrf_nonce, {secure: true, httpOnly: true})
+       .render('index', {client_title,
 			 client_stylefile,
 			 username,
 			 csrf: csrf_nonce,
@@ -41,10 +45,10 @@ app.get('/', (req, res) => {
 });
 
 app.post('/object', (req, res) => {
-    console.log('bb', req.body);
-    csrf = req.body['csrf-nonce'];
-    if (csrf != csrf_nonce) {
-	console.warn('Got CSRF nonce', csrf, 'expected', csrf_nonce);
+    csrf_nonce = req.body['csrf-nonce'];
+    csrf_cookie = req.cookies['object-store-csrf'];
+    if (csrf_nonce != csrf_cookie) {
+	console.warn('Got CSRF nonce', csrf_nonce, 'cookie', csrf_cookie);
     } else {
 	const id = uuid.v4();
 	objects[id] = req.body.content;
