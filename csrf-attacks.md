@@ -178,8 +178,11 @@ from a valid form received from the protected object store. The hazard
 service cannot guess or fake this information.
 
 Open the source for the object store front page
-`object-store-v2/src/views/index.ejs` and add a hidden `csrf-nonce`
-input. This input will accompany all valid `POST` requests.
+`object-store-v2/src/views/index.ejs` and add a hidden `csrf-nonce` input as
+shown in the first line of the following form excerpt. This input will accompany
+all valid `POST` requests made FROM this page. Since access to the page is
+protected by OAuth2-proxy, only legitimate users can issue POST requests with a
+valid nonce.
 
 ```
     <form action="/object" method="post">
@@ -189,23 +192,25 @@ input. This input will accompany all valid `POST` requests.
     </form>
 ```
 
-Open the object store Javascript `object-store-v2/src/client.js` and add
+Next, we extent the object store to handle random nonces. Open the object store
+Javascript `object-store-v2/src/client.js` and in the following we will add:
 
 1. Creation of a random per-requests nonce `csrf_nonce`
 2. Pass the `csrf_nonce` value to the rendering of the form above
 3. Set a cookie with the same `csrf_nonce` value. This is used to validate the nonce received from POST requests. Using a cookie makes the object store stateless.
 
+First, we extend the front-page GET with creation of a random nonce using `uuid`
+and pass the `csrf_nonce` variable to the `render` method. This will result in
+the nonce being part of the front-page received by legitimate clients. Second,
+we set the nonce as an HTTPS-only cookie.
 
-
-
-```
-// Serve front page
+```node
 app.get('/', (req, res) => {
     console.log('Headers in request:', req.headers)
     const username = req.headers['x-forwarded-preferred-username']
 
     // Create a random nonce, that can be used to validate, proves the
-    // source of the POST request recevied the form from a valid
+    // source of the POST request received the form from a valid
     // client.  Real nonce's should be unguessable, i.e. be
     // dynamically created.
     const csrf_nonce = uuid.v4();
@@ -214,15 +219,21 @@ app.get('/', (req, res) => {
        .render('index', {client_title,
 			 client_stylefile,
 			 username,
-			 csrf: csrf_nonce,
+			 csrf: csrf_nonce,    // Pass nonce to front-page
 			 objects});
 });
+```
 
+Finally, on POST requests we validate, that the form includes a nonce that
+matches the value stored in the cookie. POSTs that do not contain a valid nonce
+are rejected.
+
+```node
 app.post('/object', (req, res) => {
     csrf_nonce = req.body['csrf-nonce'];
     csrf_cookie = req.cookies['object-store-csrf'];
-    if (csrf_nonce != csrf_cookie) {
-	console.warn('Got CSRF nonce', csrf_nonce, 'cookie', csrf_cookie);
+    if (!csrf_nonce || csrf_nonce != csrf_cookie) {
+	console.warn('CSRF error, nonce', csrf_nonce, 'cookie', csrf_cookie);
     } else {
 	const id = uuid.v4();
 	objects[id] = req.body.content;
@@ -232,20 +243,25 @@ app.post('/object', (req, res) => {
 });
 ```
 
+<details>
+<summary>Can the nonce be faked?</summary>
+Yes, the implementation used here does not protect against a illegitimate client POSTing with a faked nonce/cookie. Common practice is to sign nonces/cookies with a secret key such that they cannot be faked.
+</details>
 
-Next, use `kubectl cp` to copy the code changes to the running object store POD:
+To deploy the changes, use `kubectl cp` to copy the code changes to the running
+object store POD:
 
 ```console
 kubectl cp object-store-v2/src/views/index.ejs `kubectl get pods -l app=object-store-v2 -o=jsonpath='{.items[0].metadata.name}'`:/app/oidc-oauth2-katas/object-store-v2/src/views/
 kubectl cp object-store-v2/src/client.js `kubectl get pods -l app=object-store-v2 -o=jsonpath='{.items[0].metadata.name}'`:/app/oidc-oauth2-katas/object-store-v2/src/
 ```
 
-After this, you will see from the log output, that the object store service is restarted.
+After this, you will see from the POD log output, that the object store service
+is restarted.
 
-Finally, try to execute the attack as previously and simultaneously
-observe logs from the object store POD. You should see, that when you
-attempt the attack, the POST request is rejected due to a 'csrf nonce'
-mismatch.
+Finally, try to execute the attack as previously and simultaneously observe logs
+from the object store POD. You should see from the POD log, that when you
+attempt the attack, the POST request is rejected due to a 'csrf nonce' mismatch.
 
 ### Clean up
 

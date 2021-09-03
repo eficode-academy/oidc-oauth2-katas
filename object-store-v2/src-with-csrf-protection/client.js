@@ -31,7 +31,7 @@ app.get('/', (req, res) => {
     const username = req.headers['x-forwarded-preferred-username']
 
     // Create a random nonce, that can be used to validate, proves the
-    // source of the POST request recevied the form from a valid
+    // source of the POST request received the form from a valid
     // client.  Real nonce's should be unguessable, i.e. be
     // dynamically created.
     const csrf_nonce = uuid.v4();
@@ -47,8 +47,8 @@ app.get('/', (req, res) => {
 app.post('/object', (req, res) => {
     csrf_nonce = req.body['csrf-nonce'];
     csrf_cookie = req.cookies['object-store-csrf'];
-    if (csrf_nonce != csrf_cookie) {
-	console.warn('Got CSRF nonce', csrf_nonce, 'cookie', csrf_cookie);
+    if (!csrf_nonce || csrf_nonce != csrf_cookie) {
+	console.warn('CSRF error, nonce', csrf_nonce, 'cookie', csrf_cookie);
     } else {
 	const id = uuid.v4();
 	objects[id] = req.body.content;
