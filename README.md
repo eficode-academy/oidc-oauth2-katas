@@ -8,7 +8,7 @@ Exercises for the [Eficode Academy](https://www.eficode.com/academy) *Securing A
 - [Using Tokens](using-tokens.md)
 - [Protecting Resources and APIs](protecting-apis.md)
 - [Using Authorizing Proxies](authorizing-proxy.md)
-- [WIP: Protecting against CSRF Attacks](csrf-attacks.md)
+- [Protecting against CSRF Attacks](csrf-attacks.md)
 - [Session Storage](session-storage.md)
 - TODO: Protecting Browser-based Apps (SPAs)
 

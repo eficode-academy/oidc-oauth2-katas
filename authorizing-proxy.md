@@ -124,9 +124,10 @@ helm repo add oauth2-proxy https://oauth2-proxy.github.io/manifests
 helm install client1 oauth2-proxy/oauth2-proxy --values my-values.yaml
 ```
 
-Finally, you can login through OAuth2 proxy by opening the URL we
-stored in the `OAUTH2_PROXY_EP` environment variable above. You should
-see something like:
+When the OAuth2-proxy and object store PODs are `Running`, access the
+URL we stored in the `OAUTH2_PROXY_EP` environment variable
+above. First you will see the OAuth2-login page, which looks like
+this:
 
 > ![OAuth2 proxy login screen](images/oauth2-proxy-login.png)
 

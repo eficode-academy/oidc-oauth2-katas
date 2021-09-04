@@ -32,25 +32,33 @@ export CLIENT1_ID=client1       # Change this if you didn't use this client name
 export CLIENT1_SECRET=<xxx>     # This is your client1 'credential'
 ```
 
-From the values above, define the following environment variables:
+From the values above, define the following environment variable:
 
 ```console
 export OIDC_ISSUER_URL=https://keycloak.user$USER_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm
-export OAUTH2_PROXY_EP=https://oauth2-proxy.user$USER_NUM.$TRAINING_NAME.eficode.academy
-export OAUTH2_PROXY_UPSTREAM=http://object-store-v2:80
 ```
 
-Since OAuth2-proxy will interact with the identity-provider to
-authenticate users, we will have to create a secret with the client ID
-and secret. Also, OAuth2-proxy will manage a session through signed
-cookies, i.e. it requires a secret for cookie signatures. Thus, we
-create a secret for OAuth2-proxy with:
+Since OAuth2-proxy will interact with the identity-provider at
+`OIDC_ISSUER_URL` to authenticate users, we will have to create a
+secret with the client ID and secret. Also, OAuth2-proxy will manage a
+session through signed cookies, i.e. it requires a secret for cookie
+signatures. Thus, we create a secret for OAuth2-proxy with:
 
 ```
 kubectl create secret generic client1 \
     --from-literal=client-id=$CLIENT1_ID \
     --from-literal=client-secret=$CLIENT1_SECRET \
-    --from-literal=cookie-secret=abcdefgh12345678
+    --from-literal=cookie-secret=xyz12345678abcde
+```
+
+Externally we make OAuth2 proxy available at our externally available
+`client1` DNS and we want the 'upstream' (the service behind OAuth2
+proxy) to be the Kubernetes-internal DNS name `object-store`. I.e. setup
+the to URLs as environment variables:
+
+```console
+export OAUTH2_PROXY_EP=https://client1.user$USER_NUM.$TRAINING_NAME.eficode.academy
+export OAUTH2_PROXY_UPSTREAM=http://object-store-v2:80
 ```
 
 Next we configure OAuth2-proxy Helm chart values with URLs from the
@@ -78,7 +86,7 @@ Next, install OAuth2-proxy with Helm:
 
 ```console
 helm repo add oauth2-proxy https://oauth2-proxy.github.io/manifests
-helm install oauth2-proxy oauth2-proxy/oauth2-proxy --values my-values.yaml
+helm install client1 oauth2-proxy/oauth2-proxy --values my-values.yaml
 ```
 
 When the OAuth2-proxy and object store PODs are `Running`, access the
@@ -88,14 +96,11 @@ this:
 
 > ![OAuth2-proxy login page](images/oauth2-proxy-login.png)
 
-Click `Sign in with...` and you are redirected to KeyCloak.
+Click `Sign in with...` and you are redirected to KeyCloak. Sign in as
+one of your users at KeyCloak and you can access the protected object
+store:
 
-<details>
-<summary>Initially, you get an 'Illegal redirection URL error' - what could be wrong?</summary>
-We are reusing the `client1` configuration and the `client1` configuration in KeyCloak only allow validating users and redirecting back to a URL starting with `client1`. Go to the `client1` settings in KeyCloak and change the URL to start with the `oauth2-proxy` we now are using.
-</details>
-
-Finally you are logged in, and you can access the protected object store:
+> If you experience, that you are automatically signed in as a different user its probably due to an existing login session from a previous exercise. Go to the KeyCloak admin interface and delete the specific user session.
 
 > ![Object store](images/object-store.png)
 
@@ -215,7 +220,7 @@ app.get('/', (req, res) => {
     // dynamically created.
     const csrf_nonce = uuid.v4();
 
-    res.cookie('object-store-csrf', csrf_nonce, {secure: true, httpOnly: true})
+    res.cookie('object-store-csrf', csrf_nonce, {secure: true, httpOnly: true, signed:true})
        .render('index', {client_title,
 			 client_stylefile,
 			 username,
@@ -231,9 +236,11 @@ are rejected.
 ```node
 app.post('/object', (req, res) => {
     csrf_nonce = req.body['csrf-nonce'];
-    csrf_cookie = req.cookies['object-store-csrf'];
-    if (!csrf_nonce || csrf_nonce != csrf_cookie) {
-	console.warn('CSRF error, nonce', csrf_nonce, 'cookie', csrf_cookie);
+    csrf_cookie = req.signedCookies['object-store-csrf'];
+    if (!csrf_nonce || !csrf_cookie) {
+	console.warn('Missing CSRF nonce, nonce', csrf_nonce, 'cookie', csrf_cookie);
+    } else if (csrf_nonce != csrf_cookie) {
+	console.warn('CSRF nonce mismatch, nonce', csrf_nonce, 'cookie', csrf_cookie);
     } else {
 	const id = uuid.v4();
 	objects[id] = req.body.content;
@@ -245,7 +252,7 @@ app.post('/object', (req, res) => {
 
 <details>
 <summary>Can the nonce be faked?</summary>
-Yes, the implementation used here does not protect against a illegitimate client POSTing with a faked nonce/cookie. Common practice is to sign nonces/cookies with a secret key such that they cannot be faked.
+Yes, if non-signed cookies are used. The implementation used here signs cookies to protect against a illegitimate client POSTing with a faked nonce and cookie
 </details>
 
 To deploy the changes, use `kubectl cp` to copy the code changes to the running
@@ -261,7 +268,7 @@ is restarted.
 
 Finally, try to execute the attack as previously and simultaneously observe logs
 from the object store POD. You should see from the POD log, that when you
-attempt the attack, the POST request is rejected due to a 'csrf nonce' mismatch.
+attempt the attack, the POST request is rejected due to a 'missing csrf nonce'.
 
 ### Clean up
 

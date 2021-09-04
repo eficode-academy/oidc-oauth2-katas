@@ -9,6 +9,7 @@ const uuid = require('uuid');
 const client_title = process.env.CLIENT_TITLE || 'Object Store v2';
 const client_stylefile = process.env.CLIENT_STYLEFILE || 'style.css';
 const port = process.env.CLIENT_PORT || 5000;
+const cookieSecret = process.env.COOKIE_SECRET || 'a secret';
 
 const app = express();
 app.set('views', path.join(__dirname, 'views'));
@@ -18,7 +19,7 @@ app.use(logger('combined'));
 app.use(express.static('src/static'));
 
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(cookieParser());
+app.use(cookieParser(cookieSecret));
 app.use(express.json());
 
 const objects = {};
@@ -36,7 +37,7 @@ app.get('/', (req, res) => {
     // dynamically created.
     const csrf_nonce = uuid.v4();
 
-    res.cookie('object-store-csrf', csrf_nonce, {secure: true, httpOnly: true})
+    res.cookie('object-store-csrf', csrf_nonce, {secure: true, httpOnly: true, signed:true})
        .render('index', {client_title,
 			 client_stylefile,
 			 username,
@@ -46,9 +47,11 @@ app.get('/', (req, res) => {
 
 app.post('/object', (req, res) => {
     csrf_nonce = req.body['csrf-nonce'];
-    csrf_cookie = req.cookies['object-store-csrf'];
-    if (!csrf_nonce || csrf_nonce != csrf_cookie) {
-	console.warn('CSRF error, nonce', csrf_nonce, 'cookie', csrf_cookie);
+    csrf_cookie = req.signedCookies['object-store-csrf'];
+    if (!csrf_nonce || !csrf_cookie) {
+	console.warn('Missing CSRF nonce, nonce', csrf_nonce, 'cookie', csrf_cookie);
+    } else if (csrf_nonce != csrf_cookie) {
+	console.warn('CSRF nonce mismatch, nonce', csrf_nonce, 'cookie', csrf_cookie);
     } else {
 	const id = uuid.v4();
 	objects[id] = req.body.content;
