@@ -1,3 +1,4 @@
+fullnameOverride: client1
 config:
   existingSecret: client1
   configFile: |-
