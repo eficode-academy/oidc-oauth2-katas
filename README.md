@@ -5,6 +5,7 @@ Exercises for the [Eficode Academy](https://www.eficode.com/academy) *Securing A
 ## Exercise Overview
 
 - [Confidential Client with Authorization Code Flow](confidential-client-auth-code-flow.md)
+- [Confidential Client with Authorization Code Flow - Digging deeper](confidential-client-auth-code-flow2.md)
 - [Using Tokens](using-tokens.md)
 - [Protecting Resources and APIs](protecting-apis.md)
 - [Using Authorizing Proxies](authorizing-proxy.md)

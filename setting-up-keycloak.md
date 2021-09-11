@@ -36,7 +36,7 @@ Click `Save` to save realm settings at the end of the page.
 
 ## Adding Users
 
-Use the following procedure to configure one or more test users.
+Use the following procedure to configure a test user.
 
 Select `Users` in the left-hand menu and then `Add user` in the right-hand side:
 
@@ -54,6 +54,8 @@ Finally, set the user password. Select `Credentials` in the top menu,
 enter a password and ensure that `Temporary` is set to `OFF`:
 
 > ![KeyCloak specify user password](images/keycloak-add-user-set-pw-anno.png)
+
+**Repeat the steps above to create a second user**
 
 ## Configuring Clients
 
