@@ -1,4 +1,4 @@
-# Confidential Client with Authorization Code Flow
+# Confidential Client with Authorization Code Flow - Part 2
 
 ## Learning Goals
 
@@ -10,13 +10,19 @@
 ## Introduction
 
 This exercise extend on
-[part-1](confidential-client-auth-code-flow.md) and goes into more
-details on the authorization code flows and the security sessions that
-are involved.
+[part-1](confidential-client-auth-code-flow.md) and we investigate the
+authorization code flow in more details. Also, we look into the
+security sessions that are involved. You should have `client1` running
+from part-1, if not, visit
+[part-1](confidential-client-auth-code-flow.md) and deploy `client1`.
 
 ## Exercise
 
 ### How the Client Implemented the Authorization Code Flow
+
+<details>
+<summary>:mag:If your trainer has explained this to you already, fell free to skip this section. Otherwise, unfold this and read a summary of how the application implements the authorization code flow.</summary>
+
 
 OIDC was designed such that complexity lies mainly with the identity
 provider/authorization server and clients are kept simple.
@@ -56,6 +62,29 @@ tokens. This is the page we saw above titled `Token Received by
 Client`.
 
 7. This completes an OIDC login using the authorization code flow.
+</details>
+
+### Logout
+
+We will re-do the authorization code flow, so we need to logout the
+current user.  The client we currently are using does not have logout
+functionality, so instead we redeploy the client and clear the login
+state in KeyCloak.
+
+Redeploy the client:
+
+```console
+kubectl delete -f kubernetes/client1.yaml
+kubectl apply -f kubernetes/client1.yaml
+```
+
+To clear the login state in KeyCloak, go to KeyCloak and in the
+left-hand menu select `Users` and then `View all users` in the top
+menu. Next, click on the user ID of the user logged-in and then
+`Sessions` in the top menu. Next, you will see the following - press
+'Logout':
+
+> ![User login sessions](images/keycloak-user-sessions-anno.png)
 
 ### Login Observed from Client Logs
 
@@ -66,27 +95,34 @@ inspect the client logs, use the following command:
 kubectl logs -f --tail=-1 -l app=client1 -c client |less
 ```
 
-Hint: To search in `less` use `\`, to go to the start of the logs use
-`g` and the end use `G`. To exit less use `q`.
+Initially you will only see around 6 lines of output of environment
+variables with client configuration data.
 
-The login redirection to the identity provider can be seen from the
-line staring with:
+> Hint: As we get more output, to search in `less` use `\`, to go to
+the start of the logs use `g` and the end use `G`. To exit less use
+`q`. Alternative, use another pager you are comfortable with.
+
+Select `Login` in the client and observe a few more lines in the
+client logs. The login redirection to the identity provider can be
+seen from the line similar to:
 
 ```
-Redirecting login to identity provider ...
+Redirecting login to identity provider https://keycloak.user1.mvl.eficode.academy/auth/realms/myrealm/protocol/openid-connect/auth?response_type=code&client_id=client1&scope=openid%20profile&redirect_uri=https%3A%2F%2Fclient1.user1.mvl.eficode.academy%2Fcallback&state=Tkg5Z21xbFRDUG5MTEZGMTkwQlpwdkdH&nonce=VTBjc1hVeDRvVG9GY081bUhFRjFiS3pz
 ```
 
 In the redirection, note how the authorization code flow is initiated
-with a parameter `response_type=code` and our client redirection URL
-are included as parameter `redirect_uri`. Note that e.g. URLs are
-encoded such that e.g. `:` becomes `%3A`. This is ordinary HTTP URL
-encoding.
+with a parameter `response_type=code` i.e. we want to initiate an
+authorization code flow and our client redirection URL are included as
+parameter `redirect_uri`. Note that e.g. URLs are encoded such that
+e.g. `:` becomes `%3A`. This is ordinary HTTP URL encoding.
 
-When the login is completed at the identity provider, we are
-redirected to the client. Locate the line starting with:
+Enter test user credentials and continue with `SignIn` in
+KeyClock. This should complete the login at the identity provider and
+we are redirected to the client. You can observe this with a new log
+line similar to:
 
 ```
-GET /callback ...
+GET /callback?state=Tkg5Z21xbFRDUG5MTEZGMTkwQlpwdkdH&session_state=312361ea-e6a0-4bce-9e37-f184c595798f&code=37551449-72d9-43ee-86ff-3e8f4ef73ffa.312361ea-e6a0-4bce-9e37-f184c595798f.d05ee7b2-4437-4423-a8c3-0aa893a9cf32
 ```
 
 In this callback we see a `state` parameter that matches the one we
@@ -97,9 +133,14 @@ The code can be exchanged for tokens, and we see the content of the
 exchange from the lines starting with:
 
 ```
-POST to https://keycloak.user1 ...
- using options ...
- using data code= ...
+POST to https://keycloak.user1.mvl.eficode.academy/auth/realms/myrealm/protocol/openid-connect/token
+ using options {
+   headers: {
+     ...
+     Authorization: 'Basic Y2xpZW50MToxMzNlMjY0Mi0zNWY2LTRjODMtOWMxMC1lNGYyZTgyY2M4Mzc='
+   }
+ }
+ using data code=37551449-72d9-43ee-86ff-3e8f4ef73ffa.312361ea-e6a0-4bce-9e37-f184c595798f.d05ee7b2-4437-4423-a8c3-0aa893a9cf32&grant_type=authorization_code&redirect_uri=https%3A%2F%2Fclient1.user1.mvl.eficode.academy%2Fcallback
 ```
 
 We see, that the code-to-token exchange is authorized with our client
@@ -154,13 +195,13 @@ Second, redeploy the client as above and retry the login. This time
 you will be prompted for login information.
 
 <details>
-<summary>:bulb:What about 'consent' - I was not asked about it this time?</summary>
+<summary>:question:What about 'consent' - KeyCloak did not ask about it this time?</summary>
 
 You may notice, that you where not asked about consent once more. Identity providers typically only asks this initially and then stores the consent for each user+client. You can find this in KeyCloak under `Users` and `Consent`. Consent is an 'agreement' between you/browser and the identity provider. The redeployed client used the existing consent agreement for `client1`.
 </details>
 
 <details>
-<summary>:bulb:The example client does not use cookies. What are the security implications of this?</summary>
+<summary>:question:The example client does not use cookies. What are the security implications of this?</summary>
 
 The example client use global variables to store tokens and does not set any browser cookies with e.g. session IDs. This means that there is no browser-to-client authentication and authorization. Anyone accessing the client can see the tokens!
 </details>
@@ -172,13 +213,20 @@ provider and not between client(s) and identity provider, the setup
 supports single-sign-on. To demonstrate this, we deploy a second
 client similar to `client1`.
 
-Store `client2` information in environment variables (using the
-secret/credential for client2, not the one from client1):
+Create `client2` information in environment variables similar to what
+we did for `client1` (**using the secret/credential for client2, not the
+one from client1**):
 
 ```console
 export CLIENT2_ID=client2
 export CLIENT2_SECRET=<xxx>     # This is your client2 'credential'
 export CLIENT2_BASE_URL=https://client2.user$USER_NUM.$TRAINING_NAME.eficode.academy
+```
+
+Verify, that your settings looks good - particularly the two secrets should be different:
+
+```console
+env | egrep 'OIDC|CLIENT[12]_' | sort
 ```
 
 Create a Kubernetes `ConfigMap` and `Secret` with this information:
@@ -193,23 +241,25 @@ kubectl create configmap client2 \
     --from-literal=client_base_url=$CLIENT2_BASE_URL
 ```
 
-and deploy the client:
+and deploy `client2`:
 
 ```console
 kubectl apply -f kubernetes/client2.yaml
 ```
 
 When the `client2` POD is `Running`, go to the URL stored in the
-`CLIENT2_BASE_URL` environment variable.  When clicking login in
-`client2`, you will be asked for consent because this is a new client
-requesting access to the user profile, but you will not be requested
-to provide user login information because the already existed a
-security session between user/browser and KeyCloak and this is handled
-through the cookies as we saw before.
+`CLIENT2_BASE_URL` environment variable.
+
+When clicking login in `client2`, you will be asked for consent
+because this is a new client requesting access to the user profile,
+but you will not be requested to provide user login information
+because there already existed a security session between user/browser
+and KeyCloak and this is persisted through the cookies as we saw
+before.
 
 > ![Client2 displays tokens](images/client2-token-screen.png)
 
-Later we will see, that this opens up for a serious type of attack,
+:exclamation: Later we will see, that this opens up for a serious type of attack,
 which we will cover in exercise [Protecting against CSRF
 Attacks](csrf-attacks.md)
 

@@ -72,7 +72,7 @@ the application. Click `Save` when you have added client settings.
 > We will be using the names `client1` and `client2` in the exercises in this repository. If you choose other names you will have to adjust the exercises accordingly.
 
 <details>
-<summary>:bulb:Which client URLs should I use?</summary>
+<summary>:question:Which client URLs should I use?</summary>
 
 The client root URL depends on where you run the client application
 and how you access it from your browser. If you use your laptop

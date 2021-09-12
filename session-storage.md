@@ -70,7 +70,7 @@ kubectl scale --replicas 4 deployment client1
 ```
 
 <details>
-<summary>:bulb: Why so many replicas?</summary>
+<summary>:question: Why so many replicas?</summary>
 Your browser may keep TCP connections open for a short while to
 optimize subsequent requests and this means that reloads could reuse
 the existing connection, i.e. reloads only go to a new POD when the
@@ -111,7 +111,7 @@ did not find expected authorization request details in session, req.session ... 
 ```
 
 <details>
-<summary>:bulb: What could be the problem (hint: The client is using the 'authorization code flow')?</summary>
+<summary>:question: What could be the problem (hint: The client is using the 'authorization code flow')?</summary>
 The authorization code flow provides a `state` and `nonce` parameter
 to the authorization process and validates that these are present in
 the identity provider callback. These parameters are stored in the
@@ -177,27 +177,20 @@ CLI using a `get <key>` command (where `<key>` is the key you find
 from `keys *`).
 
 <details>
-<summary>:bulb: The session storage is currently deployed without any persistence, i.e. no data is save to persistent storage. What will happen if the Redis POD is restarted?</summary>
+<summary>:question: The session storage is currently deployed without any persistence, i.e. no data is save to persistent storage. What will happen if the Redis POD is restarted?</summary>
 
-If the session storage is restarted, a lookup for an existing session
-will fail, and the application should handle this as a normal 'session
-not valid' situation and redirect to the login endpoint.
-
-You may try it out by deleting the session-store POD!
+> If the session storage is restarted, a lookup for an existing session will fail, and the application should handle this as a normal 'session not valid' situation and redirect to the login endpoint.
+>
+> You may try it out by deleting the session-store POD!
 
 </details>
 
 <details>
-<summary>:bulb: The session storage 'keys' command is also available to the clients. Is that a problem?</summary>
+<summary>:question: The session storage 'keys' command is also available to the clients. Is that a problem?</summary>
 
-For security reasons, session data lookup should be one-way, i.e. the
-session-ID should be sufficiently difficult to guess/predict, such
-that the client cannot access all the session data (which includes all
-users' tokens).
-
-In the example provided, there is also no authentication between the
-client and the session storage. A production solution should have
-this.
+> For security reasons, session data lookup should be one-way, i.e. the session-ID should be sufficiently difficult to guess/predict, such that the client cannot access all the session data (which includes all users' tokens).
+>
+> In the example provided, there is also no authentication between the client and the session storage. A production solution should have this.
 
 </details>
 

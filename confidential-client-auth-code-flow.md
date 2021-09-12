@@ -1,4 +1,4 @@
-# Confidential Client with Authorization Code Flow
+# Confidential Client with Authorization Code Flow - Part 1
 
 ## Learning Goals
 
@@ -128,7 +128,7 @@ access to user profile'*.
 Click login with the default scope setting and you will be redirected
 to the identity provider where you can login. If you followed the
 [Setting up KeyCloak](setting-up-keycloak.md) guide, use the username
-and password you specified for one of the test user. Also, the
+and password you specified for one of the test users. Also, the
 KeyCloak guide enabled consent-request, i.e. you will be presented
 with a consent screen:
 
@@ -162,14 +162,11 @@ This completes part-1 of the confidential client authorization code flow. In [Pa
 
 ### Clean up
 
-**If you are planning to continue to part-2, post-pone the cleanup
+**If you are planning to continue to part-2, postpone the cleanup
 until after you have done part-2.**
 
 ```console
 kubectl delete -f kubernetes/client1.yaml
-kubectl delete -f kubernetes/client2.yaml
 kubectl delete secret client1
 kubectl delete configmap client1
-kubectl delete secret client2
-kubectl delete configmap client2
 ```

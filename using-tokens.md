@@ -317,16 +317,15 @@ curl "$OIDC_END_SESSION_EP?id_token_hint=$ID_TOKEN"
 ```
 
 <details>
-<summary>:bulb:Is this proper use of the ID token?</summary>
+<summary>:question:Is this proper use of the ID token?</summary>
 
-Generally the audience of the ID token is the client, i.e. its only intended to be used by the client. The access token is used to access protected resources like the `/userinfo` endpoint. Hence one could think that 'deleting' our login session at the identity provider using the ID token is a bit strange.
-
-<details>
-<summary>:bulb:Can you think of any reason why the ID token is used for logou?</summary>
-
-OIDC is about identity and authentication (who we are). A login session is an authentication 'channel' between browser and identity provider. Access tokens are authorizing access to protected resources and does not denote an active login session.
+> Generally the audience of the ID token is the client, i.e. its only intended to be used by the client. The access token is used to access protected resources like the `/userinfo` endpoint. Hence one could think that 'deleting' our login session at the identity provider using the ID token is a bit strange.
 </details>
 
+<details>
+<summary>:question:Can you think of any reason why the ID token is used for logout?</summary>
+
+>OIDC is about identity and authentication (who we are). A login session is an authentication 'channel' between browser and identity provider. Access tokens are authorizing access to protected resources and does not denote an active login session.
 </details>
 
 

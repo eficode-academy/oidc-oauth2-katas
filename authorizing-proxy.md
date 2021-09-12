@@ -178,8 +178,8 @@ KeyCloak session, use the KeyCloak interface as we did in the [Using
 Tokens](using-tokens.md) exercise.
 
 <details>
-<summary>:bulb: Implementing full logout</summary>
-It is possible to logout from both OAuth2 proxy and KeyCloak by appending a redirection URL to the `/auth2/sign_out` URL. See https://oauth2-proxy.github.io/oauth2-proxy/docs/features/endpoints/#sign-out.
+<summary>:mag: Implementing full logout</summary>
+> It is possible to logout from both OAuth2 proxy and KeyCloak by appending a redirection URL to the `/auth2/sign_out` URL. See https://oauth2-proxy.github.io/oauth2-proxy/docs/features/endpoints/#sign-out.
 </details>
 
 ### Clean up
