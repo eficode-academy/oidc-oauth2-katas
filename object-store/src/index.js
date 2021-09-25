@@ -38,6 +38,7 @@ Issuer.discover(oidc_issuer_url)
         }));
 
         app.get('/objects', (req, res) => {
+            console.log('Read list of object IDs');
             res.send(Object.keys(objects));
         });
 
@@ -45,15 +46,17 @@ Issuer.discover(oidc_issuer_url)
                  //allowScopes(['xxx']),
                  (req, res) => {
                      const id = uuid.v4();
-                     objects[id] = req.body;
-                     res.send(id);
+                     objects[id] = req.body.data;
+                     console.log('Created new object with ID', id, 'data', objects[id]);
+                     res.send({id});
         });
 
         app.get('/object/:id',
                 //allowScopes(['yyy']),
                 (req, res) => {
                     const id = req.params.id;
-                    res.send(objects[id]);
+                    console.log('Read object', id);
+                    res.send({data: objects[id]});
                 });
 
         app.use(function (err, req, res, next) {
