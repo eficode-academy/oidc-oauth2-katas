@@ -7,6 +7,9 @@ const dist = process.env.STATIC_FILES_PATH;
 const csp_connect_sources = process.env.CSP_CONNECT_SOURCES || 'none'
 const csp_script_sources = process.env.CSP_SCRIPT_SOURCES || 'none'
 
+console.log('CSP_CONNECT_SOURCES', csp_connect_sources);
+console.log('CSP_SCRIPT_SOURCES', csp_script_sources);
+
 const app = express();
 app.use(logger('combined'));
 
