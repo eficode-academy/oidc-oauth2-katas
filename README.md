@@ -11,7 +11,7 @@ Exercises for the [Eficode Academy](https://www.eficode.com/academy) *Securing A
 - [Using Authorizing Proxies](authorizing-proxy.md)
 - [Protecting against CSRF Attacks](csrf-attacks.md)
 - [Session Storage](session-storage.md)
-- TODO: Protecting Browser-based Apps (SPAs)
+- [WIP: OIDC in Browser-based Apps (SPAs)](oidc-in-spas.md)
 
 ## Software Components
 
@@ -20,6 +20,11 @@ Exercises for the [Eficode Academy](https://www.eficode.com/academy) *Securing A
 - object-store - An object store that implement authorization policies using a standard OIDC module.
 - object-store-v2 - An object store that relies on an external OAuth2 proxy to implement authentication and authorization.
 - hazard-service - A service that demonstrate the CSRF attack against object-store-v2
+- spa - A browser-based applications using the backend-for-frontend pattern and writing to a protected object-store
+
+For simplicity, these software components are built into a single
+container image. See [Dockerfile](ci/Dockerfile) and
+[image](https://hub.docker.com/repository/docker/praqma/oidc-oauth2-katas-client).
 
 ## Infrastructure Prerequisites
 

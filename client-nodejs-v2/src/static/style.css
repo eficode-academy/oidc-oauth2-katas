@@ -20,6 +20,7 @@
 }
 .verbatim {
   white-space: pre-wrap;
+  font-family: monospace;  
 }
 .row {
   display: inline-block;

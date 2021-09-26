@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: cdn
+  name: cdn
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cdn
+  template:
+    metadata:
+      labels:
+        app: cdn
+    spec:
+      containers:
+      - image: praqma/oidc-oauth2-katas-client:sha-f46c759
+        name: client
+        command: ["node", "src/index.js"]
+        workingDir: /apps/cdn
+        env:
+        - name: STATIC_FILES_PATH
+          value: "dist"
+        - name: CSP_CONNECT_SOURCES
+          valueFrom:
+            configMapKeyRef:
+              name: cdn
+              key: csp_connect_sources
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: cdn
+  name: spa
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 5000
+  selector:
+    app: cdn
+  type: ClusterIP

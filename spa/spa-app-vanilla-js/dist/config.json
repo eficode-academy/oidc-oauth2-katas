@@ -1,0 +1,4 @@
+{
+    "loginBaseUrl" : "http://localhost:5010",
+    "apiBaseUrl":    "http://localhost:5020"
+}

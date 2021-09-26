@@ -1,6 +1,3 @@
-const bffBaseUrl = 'http://localhost:5010'
-const apiBaseUrl = 'http://localhost:5020'
-
 const doRequest = async (method, baseUrl, path, data) => {
     console.log('doRequest', method, baseUrl, path, data);
     let options = {
@@ -31,11 +28,17 @@ const doRequest = async (method, baseUrl, path, data) => {
 }
 
 const doBFFRequest = async (method, path, data) => {
-    return doRequest(method, bffBaseUrl, path, data);
+    let configuration = JSON.parse(localStorage.getItem('configuration'));
+    return doRequest(method, configuration.loginBaseUrl, path, data);
 }
 
 const doAPIRequest = async (method, path, data) => {
-    return doRequest(method, apiBaseUrl, path, data);
+    let configuration = JSON.parse(localStorage.getItem('configuration'));
+    return doRequest(method, configuration.apiBaseUrl, path, data);
+}
+
+const doSelfRequest = async (method, path, data) => {
+    return doRequest(method, '/', path, data);
 }
 
 const doBFFLogin = async () => {
@@ -89,6 +92,17 @@ const doAPIListObjects = async () => {
     $('#objectList').html(data.join('<br>'));
 }
 
+async function ensureConfig() {
+    if (! localStorage.getItem('configuration')) {
+	console.log('Loading configuration');
+	data = await doSelfRequest('GET', 'config.json', null);
+	console.log('Config response', data);
+	localStorage.setItem('configuration', JSON.stringify(data));
+    }
+    let configuration = JSON.parse(localStorage.getItem('configuration'));
+    $('#configuration').html(JSON.stringify(configuration, null, '  '));
+}
+
 window.addEventListener('load', () => {
     $('#loginState').html('Unknown');
     $('#userInfo').html('No UserInfo. Click "Get User Info" above to read user info from BFF');
@@ -100,5 +114,7 @@ window.addEventListener('load', () => {
     $('#doAPIListObjects').click(doAPIListObjects);
 
     console.log('Location: ', location.href);
+
+    ensureConfig();
     doBFFPageLoad(location.href);
 });
