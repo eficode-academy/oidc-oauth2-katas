@@ -1,6 +1,6 @@
 FROM node:16.4.2-alpine3.12
 
-RUN mkdir -p /apps/client-nodejs /apps/client-nodejs-v2 /apps/object-store /apps/object-store-v2 /apps/hazard-service
+RUN mkdir -p /apps/client-nodejs /apps/client-nodejs-v2 /apps/object-store /apps/object-store-v2 /apps/hazard-service /apps/cdn /apps/cdn/dist
 
 COPY client-nodejs /apps/client-nodejs
 RUN cd /apps/client-nodejs && npm install
@@ -16,6 +16,10 @@ RUN cd /apps/object-store-v2 && npm install
 
 COPY hazard-service /apps/hazard-service
 RUN cd /apps/hazard-service && npm install
+
+COPY spa/cdn /apps/cdn
+RUN cd /apps/cdn && npm install
+COPY spa/spa-app-vanilla-js/dist /apps/cdn/dist
 
 EXPOSE 5000
 
