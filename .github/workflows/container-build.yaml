@@ -11,6 +11,9 @@ on:
       - client-nodejs*/**
       - object-store*/**
       - hazard-service/**
+    paths-ignore:
+      - **.md
+      - kubernetes/**.yaml
     tags:
       - v*
 
