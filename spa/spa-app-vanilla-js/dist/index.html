@@ -7,24 +7,31 @@
 <body>
   <div class="ui container">
     <div class="header"><b>Browser-based Client (SPA)</b></div>
-    <h2>Store Objects</h2>
+    <h2>Object Store</h2>
 
-    <p><b><div id="loginState"></div></b></p>
+    <p>This is our configuration, which the SPA will use to communicate with backends:</p>
+    <div class="framed verbatim"><div id="configuration">Nothing yet...</div></div>
+
+    <h3>SPA Operations</h3>
+
+    <p><b><div id="loginState" class="boxed boxed-red"></div></b></p>
 
     <div class='row'>
       <button id='doLogin'>Login</button>
       <button id='doLogout'>Logout</button>
       <button id='doGetUserInfo'>Get User Info</button>
+      <button id='doRefreshTokens'>Refresh Tokens</button>
     </div>
 
     <p>This is the userinfo we received:</p>
-    <div class="framed verbatim"><div id="userInfo"></div></div>
+    <div class="framed verbatim"><div id="userInfo">Nothing yet, fetching data...</div></div>
 
     <p>Use the following to create new objects through the API Gateway</p>
     <p>
       <div class='row'>
         <input type='text' placeholder='Object data' id='objectData'>
         <button id='doAPIWrite'>Create Object</button>
+	<div id="objectDataInfo"></div>
       </div>
     </p>
 

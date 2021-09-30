@@ -11,12 +11,24 @@
   background-color: #fff9e6;
   border: 2px solid grey;
   border-radius: 5px;
-  padding-top: 10px;
-  padding-right: 10px;
-  padding-bottom: 10px;
-  padding-left: 10px;
+  padding: 10px;
   word-wrap: break-word;
   margin-bottom: 8px;
+}
+.boxed {
+  border-radius: 5px;
+  padding: 2px;
+  margin-bottom: 2px;
+  width: 200px;
+  text-align: center;
+}
+.boxed-green {
+  background-color: #dafbe1;
+  color: #116329;
+}
+.boxed-red {
+  background-color: #ffebe9;
+  color: #82071e;
 }
 .verbatim {
   white-space: pre-wrap;

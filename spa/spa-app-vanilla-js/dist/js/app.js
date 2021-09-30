@@ -22,7 +22,6 @@ const doRequest = async (method, baseUrl, path, data) => {
 	return null;
     } catch (error) {
 	console.log('Error', error);
-	//showError(error);
 	return null;
     }
 }
@@ -42,13 +41,18 @@ const doSelfRequest = async (method, path, data) => {
 }
 
 const doBFFLogin = async () => {
-    data = await doBFFRequest('GET', '/start', null);
+    data = await doBFFRequest('POST', '/start', null);
     console.log('Login data', data);
     location.href = data['authRedirUrl']
 }
 
+const doBFFRefresh = async () => {
+    data = await doBFFRequest('POST', '/refresh', null);
+    console.log('Refresh data', data);
+}
+
 const doBFFLogout = async () => {
-    data = await doBFFRequest('GET', '/logout', null);
+    data = await doBFFRequest('POST', '/logout', null);
     console.log('Logout data', data);
     location.href = data['logoutUrl']
 }
@@ -57,9 +61,9 @@ const doBFFPageLoad = async (pageUrl) => {
     data = await doBFFRequest('POST', '/pageload', {pageUrl});
     console.log('Pageload data', data);
     if (data && 'loggedIn' in data && data['loggedIn']) {
-	$('#loginState').html('Logged in (click "Get User Info" for more user data)');
+	$('#loginState').html('Logged in (click "Get User Info" for more user data)').removeClass('boxed-red').addClass('boxed-green');
     } else {
-	$('#loginState').html('Not logged in');
+	$('#loginState').html('Not logged in').removeClass('boxed-green').addClass('boxed-red');
     }
     if (data && 'handledAuth' in data && data['handledAuth']) {
 	// The pageload finished the login, clear code from location
@@ -70,11 +74,11 @@ const doBFFPageLoad = async (pageUrl) => {
 const doBFFGetUserInfo = async () => {
     data = await doBFFRequest('GET', '/userinfo', null);
     console.log('Userinfo data', data);
-    if ('preferred_username' in data) {
-	$('#loginState').html('Logged in as <b>'+data['preferred_username']+'</b>');
-	$('#userInfo').html(JSON.stringify(data, null, '  '));
+    if (Object.keys(data).length === 0) {
+	$('#userInfo').html('**ERROR** (tokens expired?)');
     } else {
-	$('#userInfo').html('');
+	$('#loginState').html('Logged in as <b>'+data['preferred_username']+'</b>').removeClass('boxed-red').addClass('boxed-green');
+	$('#userInfo').html(JSON.stringify(data, null, '  '));
     }
 }
 
@@ -83,13 +87,22 @@ const doAPIWrite = async () => {
     console.log('API writing data', data);
     data = await doAPIRequest('POST', '/api/object', {data});
     console.log('API write response', data);
-    $('#objectList').html('');
+    if (data) {
+	$('#objectList').html('');
+	$('#objectDataInfo').html('**ERROR** (not logged in?)');
+    } else {
+	$('#objectDataInfo').html('**ERROR** (not logged in?)');
+    }
 }
 
 const doAPIListObjects = async () => {
     data = await doAPIRequest('GET', '/api/objects', null);
     console.log('API list objects response', data);
-    $('#objectList').html(data.join('<br>'));
+    if (data) {
+	$('#objectList').html(data.join('<br>'));
+    } else {
+	$('#objectList').html('**ERROR** (not logged in?)');
+    }
 }
 
 async function ensureConfig() {
@@ -110,6 +123,7 @@ window.addEventListener('load', () => {
     $('#doLogin').click(doBFFLogin);
     $('#doLogout').click(doBFFLogout);
     $('#doGetUserInfo').click(doBFFGetUserInfo);
+    $('#doRefreshTokens').click(doBFFRefresh);
     $('#doAPIWrite').click(doAPIWrite);
     $('#doAPIListObjects').click(doAPIListObjects);
 
