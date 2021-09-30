@@ -15,7 +15,7 @@ spec:
         app: client2
     spec:
       containers:
-      - image: praqma/oidc-oauth2-katas-client:0.1.0
+      - image: praqma/oidc-oauth2-katas-client:sha-8a5e157
         name: client
         command: ["node", "src/client.js"]
         env:

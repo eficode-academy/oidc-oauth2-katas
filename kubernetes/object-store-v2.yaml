@@ -15,14 +15,14 @@ spec:
         app: object-store-v2
     spec:
       initContainers:
-      - image: praqma/oidc-oauth2-katas-client:0.1.0
+      - image: praqma/oidc-oauth2-katas-client:sha-8a5e157
         name: git-clone
         command: ["git", "clone", "https://github.com/eficode-academy/oidc-oauth2-katas"]
         workingDir: /app
         volumeMounts:
         - mountPath: /app
           name: app
-      - image: praqma/oidc-oauth2-katas-client:0.1.0
+      - image: praqma/oidc-oauth2-katas-client:sha-8a5e157
         name: modules
         command: ["npm", "i"]
         workingDir: /app/oidc-oauth2-katas/object-store-v2
@@ -30,7 +30,7 @@ spec:
         - mountPath: /app
           name: app
       containers:
-      - image: praqma/oidc-oauth2-katas-client:0.1.0
+      - image: praqma/oidc-oauth2-katas-client:sha-8a5e157
         name: object-store
         command: ["npm", "run", "watch"]
         #command: ["node", "src/client.js"]

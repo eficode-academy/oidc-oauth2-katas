@@ -2,43 +2,55 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: cdn
-  name: cdn
+    app: spa-cdn
+  name: spa-cdn
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: cdn
+      app: spa-cdn
   template:
     metadata:
       labels:
-        app: cdn
+        app: spa-cdn
     spec:
       containers:
-      - image: praqma/oidc-oauth2-katas-client:sha-f46c759
+      - image: praqma/oidc-oauth2-katas-client:sha-8a5e157
         name: client
         command: ["node", "src/index.js"]
         workingDir: /apps/cdn
         env:
         - name: STATIC_FILES_PATH
           value: "dist"
+        - name: CSP_SCRIPT_SOURCES
+          value: "https://code.jquery.com https://unpkg.com"
         - name: CSP_CONNECT_SOURCES
           valueFrom:
             configMapKeyRef:
-              name: cdn
+              name: spa-cdn
               key: csp_connect_sources
+        volumeMounts:
+        - name: config-volume
+          mountPath: /apps/cdn/dist/config
+      volumes:
+        - name: config-volume
+          configMap:
+            name: spa-cdn
+            items:
+             - key: config.json
+               path: config.json
 ---
 apiVersion: v1
 kind: Service
 metadata:
   labels:
-    app: cdn
-  name: spa
+    app: spa-cdn
+  name: spa-cdn
 spec:
   ports:
   - port: 80
     protocol: TCP
     targetPort: 5000
   selector:
-    app: cdn
+    app: spa-cdn
   type: ClusterIP

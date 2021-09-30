@@ -15,7 +15,7 @@ spec:
         app: api
     spec:
       containers:
-      - image: praqma/oidc-oauth2-katas-client:0.1.0
+      - image: praqma/oidc-oauth2-katas-client:sha-8a5e157
         name: api
         command: ["npm", "run", "watch"]
         env:

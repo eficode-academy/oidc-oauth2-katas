@@ -22,6 +22,7 @@ RUN cd /apps/cdn && npm install
 COPY spa/spa-app-vanilla-js/dist /apps/cdn/dist
 
 COPY spa/bff /apps/bff
+RUN cd /apps/bff && npm install
 
 EXPOSE 5000
 

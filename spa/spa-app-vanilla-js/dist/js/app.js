@@ -108,7 +108,7 @@ const doAPIListObjects = async () => {
 async function ensureConfig() {
     if (! localStorage.getItem('configuration')) {
 	console.log('Loading configuration');
-	data = await doSelfRequest('GET', 'config.json', null);
+	data = await doSelfRequest('GET', 'config/config.json', null);
 	console.log('Config response', data);
 	localStorage.setItem('configuration', JSON.stringify(data));
     }

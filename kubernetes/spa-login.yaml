@@ -2,28 +2,24 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: client1
-  name: client1
+    app: spa-login
+  name: spa-login
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: client1
+      app: spa-login
   template:
     metadata:
       labels:
-        app: client1
+        app: spa-login
     spec:
       containers:
       - image: praqma/oidc-oauth2-katas-client:sha-8a5e157
         name: client
-        #command: ["npm", "run", "watch"]
-        command: ["node", "src/client.js"]
+        command: ["node", "src/index.js"]
+        workingDir: /apps/bff
         env:
-        - name: NODE_ENV
-          value: "development"
-        - name: CLIENT_TITLE
-          value: "Confidential Client1-v3"
         - name: CLIENT_ID
           valueFrom:
             secretKeyRef:
@@ -34,35 +30,30 @@ spec:
             secretKeyRef:
               name: client1
               key: client_secret
-        - name: CLIENT_BASE_URL
+        - name: REDIRECT_URL
           valueFrom:
             configMapKeyRef:
-              name: client1
-              key: client_base_url
-        - name: SESSION_SECRET
-          value: "CloakAndDaggers"
+              name: spa-login
+              key: spa_base_url
         - name: OIDC_ISSUER_URL
           valueFrom:
             configMapKeyRef:
-              name: client1
+              name: spa-login
               key: oidc_issuer_url
-        - name: REDIS_URL
-          value: redis://session-store
-        workingDir: /apps/client-nodejs-v2
 ---
 apiVersion: v1
 kind: Service
 metadata:
   labels:
-    app: client1
-  name: client1
+    app: spa-login
+  name: spa-login
 spec:
   ports:
   - port: 80
     protocol: TCP
-    targetPort: 5000
+    targetPort: 5010
   selector:
-    app: client1
+    app: spa-login
   type: ClusterIP
 ---
 apiVersion: apps/v1
