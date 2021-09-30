@@ -12,7 +12,7 @@ on:
       - object-store*/**
       - hazard-service/**
     paths-ignore:
-      - **.md
+      - '**.md'
       - kubernetes/**.yaml
     tags:
       - v*
