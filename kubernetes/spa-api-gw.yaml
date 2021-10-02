@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: spa-api-gw
+  name: spa-api-gw
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spa-api-gw
+  template:
+    metadata:
+      labels:
+        app: spa-api-gw
+    spec:
+      containers:
+      - image: praqma/oidc-oauth2-katas-client:sha-62fa757
+        name: client
+        command: ["node", "src/index.js"]
+        workingDir: /apps/api-gw
+        env:
+        - name: UPSTREAM_URL
+          value: "http://api"
+        - name: REDIS_URL
+          value: redis://session-store
+        - name: SESSION_SECRET
+          value: ASecretDontTell
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: spa-api-gw
+  name: spa-api-gw
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 5020
+  selector:
+    app: spa-api-gw
+  type: ClusterIP

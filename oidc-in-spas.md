@@ -82,7 +82,7 @@ code flow between BFF and identity provider)?
 With the initial login request from BFF to identity provider, a number of parameters are passed, e.g. scope, client-ID and redirection URL for where to go after the login. Are all these parameters correct now?
 <details>
 <summary>:bulb:Answer</summary>
-We have used the `client1` settings configured for previous exercises, e.g. the redirection URL configured in the identity provider does not match the SPA. You need to go to the KeyCloak admin interface and update this URL to match the SPA.
+We have used the `client1` settings configured for previous exercises, e.g. the redirection URL configured in the identity provider does not match the SPA and is probably configured to something starting with `client1` right now. You need to go to the KeyCloak admin interface and update this URL to match the SPA.
 </details>
 </details>
 
@@ -112,6 +112,12 @@ kubectl apply -f kubernetes/protected-api.yaml
 The SPA cannot access the API yet, since it needs a component to
 exchange the cookie for an access token. The API gateway component
 does that.
+
+
+
+```console
+kubectl apply -f kubernetes/spa-api-gw.yaml
+```
 
 
 
