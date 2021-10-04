@@ -14,6 +14,12 @@ write objects to an object store. When creating an object an ID is
 assigned to the object, and the object can later be retrieved using
 the ID. We can also read a list of IDs for all objects in the store.
 
+The object store will support the following methods:
+
+1. GET `/objects` - for reading a list of all objects
+2. POST `/object` - for creating a new object
+3. GET `/object/:id` - for reading a specific object using its ID
+
 We will protect access to the API with access tokens obtained through
 our client and perform operations against the API using `curl` and the
 terminal, however, these operations could easily be implemented in the
@@ -25,20 +31,21 @@ access token scopes and claims.
 ### Client v2: Using Open-Source Libraries for OIDC Logic
 
 The previous exercises used a client that implemented the OIDC login
-procedure itself for demonstration purposes, it is generally advisable
+procedure itself for demonstration purposes, **it is generally advisable
 to use well-maintained open-source libraries to implement the OIDC
-logic.
+logic.**
 
 In this and following exercises the NodeJS client has been updated to
 use [PassportJS](http://www.passportjs.org) to handle the OIDC
 logic. The details of the PassportJS implementation is not important
-for the exercises, however, we felt it was important not to have too
-many exercises based on 'bad practices'. The example client provided
-may also be a good starting-point for new applications.
+for the exercises, however, it means that the exercise apply the
+recommendation above about using a well-maintained open-source library
+to implement the OIDC logic. The example client provided may also be a
+good starting-point for new applications.
 
 ### API Implementation
 
-The source of the NodeJS API implementation can be found
+The source of the NodeJS API object store implementation can be found
 [here](object-store/src/index.js). Initially a single object is
 created (around line 15):
 
@@ -50,13 +57,13 @@ The API implementation use the same
 [openid-client](https://www.npmjs.com/package/openid-client) library
 as the client. However, the API implementation only use this library
 for OIDC discovery to find the URL of the keys used to sign JWTs. Part
-of the API authorization is to validate the signature on the JWTs used
-to access the API.
+of the API authorization is to validate the signature on the
+access-token JWTs used to access the API.
 
 The API implementation is a standard NodeJS express
 implementation. The core part is the following, which does the OIDC
-discovery and installs a JWT middleware using the JWKS URI from the
-identity provider:
+discovery and installs a middleware that **only trusts JWTs issued
+from the identity provider**:
 
 ```node
 // OIDC discovery to locate the JWKS URI used to validate JWTs
@@ -183,7 +190,8 @@ curl -H "Authorization: Bearer $ACCESS_TOKEN" $API_EP/objects && echo ""
 ```
 
 Try leaving out the token or the `Authorization` header. This
-illustrate we can access the API **as long as we provide an access token**.
+illustrate we can access the API **as long as we provide an access
+token from the identity provider the API trusts**.
 
 ### Using Scope to Gate Access to API
 
@@ -243,7 +251,7 @@ found in [object-store/src/index.js](object-store/src/index.js).
 
 Open `index.js` in an editor on the machine where you are running your
 `kubectl` commands. Locate the `GET` for object-by-id. It looks like
-this:
+this (around line 54):
 
 ```node
 	app.get('/object/:id',
@@ -255,7 +263,7 @@ this:
 ```
 
 The get-by-id method is gated by a (commented out) `allowScopes()`
-function that are also in the `index.js` file. This function ensures
+function that are also in the `index.js` file (around line 72). This function ensures
 that one or more scopes are present in the access token and generates
 an error if not.
 
@@ -268,14 +276,14 @@ kubectl logs -f -l app=api
 
 Next, edit `object-store/src/index.js` and remove the `//` in front of
 `allowScopes` **but keep the bogus `yyy` scope**. Since this is a scope we
-do not have in out access token we should expect an error when trying
+do not have in our access token we should expect an error when trying
 to access the API.
 
 Next, use `kubectl cp` to copy the code changes to the running API
 POD:
 
 ```console
-kubectl cp object-store/src/index.js `kubectl get pods -l app=api -o=jsonpath='{.items[0].metadata.name}'`:/app/oidc-oauth2-katas/object-store/src/
+kubectl cp object-store/src/index.js `kubectl get pods -l app=api -o=jsonpath='{.items[0].metadata.name}'`:/apps/object-store/src/
 ```
 
 After this, you will see from the log output, that the API service is restarted.
@@ -307,7 +315,9 @@ cp` to update the API POD.
 		});
 ```
 
-Retry the get-by-id operation, which should now succeed.
+Retry the get-by-id operation, which should now succeed (since the API
+has no persistence and creates random object IDs at startup, remember
+to also update `OBJID`).
 
 Optionally, add the `:write` scope to the object-store `POST` method in the API, replacing the `//allowScopes(['xxx'])`.
 
