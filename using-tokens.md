@@ -264,7 +264,7 @@ To see this in action, watch the client logs with the command below and press th
 kubectl logs -f -l app=client1
 ```
 
-In the logs you should see the following (slightly edited for brevity)
+In the logs you should see the following (slightly edited for brevity):
 
 ```
 Redirecting login to identity provider https://keycloak.userX..../openid-connect/auth?response_type=code&...&id_token_hint=XXXX&prompt=none
@@ -272,7 +272,7 @@ Redirecting login to identity provider https://keycloak.userX..../openid-connect
 
 You will also see that as long as the user have a login session with
 KeyCloak, the silent authorization successfully issues a new
-ID-token.
+ID-token. Try selecting `Check Login Status` a few more times and observe the tokens being refreshed.
 
 Try selecting `Logout` in the KeyCloak user session view.
 

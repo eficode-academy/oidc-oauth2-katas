@@ -15,9 +15,52 @@ ERRORS=0
 function common-setup-env {
     # These are a bit random - needs real idp values
     export CLIENT1_ID=client1
-    export CLIENT1_SECRET=123456789
+    if [ -z "$CLIENT1_SECRET" ]; then
+        export CLIENT1_SECRET=123456789
+    fi
     export OIDC_ISSUER_URL=https://keycloak.user$USER_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm
+    export OIDC_AUTH_URL=`curl -s https://keycloak.user$USER_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm/.well-known/openid-configuration | jq -r .authorization_endpoint`
+    export OIDC_TOKEN_URL=`curl -s https://keycloak.user$USER_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm/.well-known/openid-configuration | jq -r .token_endpoint`
 }
+
+function exercise-using-tokens-setup-env {
+    common-setup-env
+    export CLIENT1_BASE_URL=https://client1.user$USER_NUM.$TRAINING_NAME.eficode.academy
+}
+
+if [ $ACTION = "exercise-using-tokens-deploy" ]; then
+    exercise-using-tokens-setup-env
+
+    kubectl create secret generic client1 \
+            --from-literal=client_id=$CLIENT1_ID \
+            --from-literal=client_secret=$CLIENT1_SECRET
+    kubectl create configmap client1 \
+            --from-literal=oidc_auth_url=$OIDC_AUTH_URL  \
+            --from-literal=oidc_token_url=$OIDC_TOKEN_URL \
+            --from-literal=client_base_url=$CLIENT1_BASE_URL
+
+    kubectl apply -f $KATAS_PATH/kubernetes/client1.yaml
+    kubectl wait --for=condition=ready pod -l app=client1 --timeout=3600s
+fi
+
+if [ $ACTION = "exercise-using-tokens-undeploy" ]; then
+    kubectl delete -f $KATAS_PATH/kubernetes/client1.yaml
+    kubectl delete secret client1
+    kubectl delete configmap client1
+fi
+
+if [ $ACTION = "exercise-using-tokens-test" ]; then
+    exercise-using-tokens-setup-env
+    HTTP_STATUS=$(curl -s $CLIENT1_BASE_URL -o /dev/null -w '%{http_code}')
+    if [ "$HTTP_STATUS" != '200' ]; then
+        echo "*** Error, got HTTP status $HTTP_STATUS"
+        let ERRORS+=1
+    else
+        let SUCCESSES+=1
+    fi
+fi
+
+
 
 function exercise-protecting-apis-setup-env {
     common-setup-env
@@ -74,7 +117,7 @@ if [ $ACTION = "exercise-oidc-in-spas-deploy" ]; then
 
     kubectl create configmap spa-cdn \
             --from-literal=csp_connect_sources="$SPA_BASE_URL"
-    kubectl apply -f kubernetes/spa-cdn.yaml
+    kubectl apply -f $KATAS_PATH/kubernetes/spa-cdn.yaml
 
     kubectl create secret generic client1 \
             --from-literal=client_id=$CLIENT1_ID \
@@ -82,13 +125,13 @@ if [ $ACTION = "exercise-oidc-in-spas-deploy" ]; then
     kubectl create configmap spa-login \
             --from-literal=oidc_issuer_url=$OIDC_ISSUER_URL  \
             --from-literal=redirect_url=$SPA_BASE_URL
-    kubectl apply -f kubernetes/spa-login.yaml
+    kubectl apply -f $KATAS_PATH/kubernetes/spa-login.yaml
 
     kubectl create configmap api \
             --from-literal=oidc_issuer_url=$OIDC_ISSUER_URL
-    kubectl apply -f kubernetes/protected-api.yaml
+    kubectl apply -f $KATAS_PATH/kubernetes/protected-api.yaml
 
-    kubectl apply -f kubernetes/spa-api-gw.yaml
+    kubectl apply -f $KATAS_PATH/kubernetes/spa-api-gw.yaml
 
     kubectl wait --for=condition=ready pod -l app=spa-cdn --timeout=3600s
     kubectl wait --for=condition=ready pod -l app=spa-login --timeout=3600s
@@ -98,10 +141,10 @@ if [ $ACTION = "exercise-oidc-in-spas-deploy" ]; then
 fi
 
 if [ $ACTION = "exercise-oidc-in-spas-undeploy" ]; then
-    kubectl delete -f kubernetes/spa-cdn.yaml
-    kubectl delete -f kubernetes/spa-login.yaml
-    kubectl delete -f kubernetes/spa-api-gw.yaml
-    kubectl delete -f kubernetes/protected-api.yaml
+    kubectl delete -f $KATAS_PATH/kubernetes/spa-cdn.yaml
+    kubectl delete -f $KATAS_PATH/kubernetes/spa-login.yaml
+    kubectl delete -f $KATAS_PATH/kubernetes/spa-api-gw.yaml
+    kubectl delete -f $KATAS_PATH/kubernetes/protected-api.yaml
     kubectl delete cm spa-cdn spa-login api
     kubectl delete secret client1
 fi
