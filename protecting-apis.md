@@ -342,6 +342,21 @@ export ACCESS_TOKEN=<yyy>
 echo $ACCESS_TOKEN | cut -d. -f2 |base64 -d | jq .realm_access
 ```
 
+You should see something like:
+
+```
+{
+  "roles": [
+    "default-roles-myrealm",
+    "developer",
+    "offline_access",
+    "uma_authorization"
+  ]
+}
+```
+
+where `developer` is the role we added for this example.
+
 > The claim name `.realm_access` is KeyCloak specific, other identity provides will use other claim names.
 
 Since the JWT claims are just entries in a dictionary, there is no fundamental difference in implementing access restrictions using roles instead of scopes. The implementation follows closely the `allowScope()` function, e.g. something like:
@@ -367,7 +382,7 @@ Since the JWT claims are just entries in a dictionary, there is no fundamental d
 
 Add the above function to the API and modify the `GET` for
 object-by-id function to only allow access given one of the roles you
-assigned users. You may even combine the scope and role access
+assigned users (around line 54). You may even combine the scope and role access
 restrictions with something like:
 
 ```node
@@ -379,6 +394,12 @@ restrictions with something like:
                     res.send(objects[id]);
                 });
 ```
+
+Deploy the code with the `kubectl cp` command shown above and try
+accessing the API using access tokens from your two users in two
+different groups (remember to log-out and in to get access tokens with
+the new group claim). Observe the result in the logs when reading an
+object-by-id with a user without the required group relationship.
 
 ### Clean up
 
