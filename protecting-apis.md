@@ -385,7 +385,7 @@ restrictions with something like:
 ```console
 kubectl delete -f kubernetes/protected-api.yaml
 kubectl delete cm api
-kubectl apply -f kubernetes/client1-v2.yaml
+kubectl delete -f kubernetes/client1-v2.yaml
 kubectl delete cm client1
 kubectl delete secret client1
 ```
