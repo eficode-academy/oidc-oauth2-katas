@@ -15,12 +15,16 @@ Exercises for the [Eficode Academy](https://www.eficode.com/academy) *Securing A
 
 ## Software Components
 
-- client-nodejs - A NodeJS client that implements the OIDC authorization code flow itself.
-- client-nodejs-v2 - A NodeJS client that use a standard module to implement the OIDC authorization code flow.
-- object-store - An object store that implement authorization policies using a standard OIDC module.
+- client-nodejs - A NodeJS client that implements the OIDC authorization code flow in a DIY fashion.
+- client-nodejs-v2 - A NodeJS client that use a Passport-based NodeJS module to implement the OIDC authorization code flow.
+- object-store - An object store that implement authorization policies using a Passport-based module.
 - object-store-v2 - An object store that relies on an external OAuth2 proxy to implement authentication and authorization.
 - hazard-service - A service that demonstrate the CSRF attack against object-store-v2
-- spa - A browser-based applications using the backend-for-frontend pattern and writing to a protected object-store
+- spa - A browser-based applications using the backend-for-frontend pattern and writing to a protected object-store. The SPA consists of the following components:
+  * cdn - A simple server for static SPA assets. Applies CSP.
+  * login/bff - A backend-for-frontend component that implements OIDC server-side
+  * api-gw - A component that works together with the login/bff component for exchanging cookies for tokens. The api-gw interfaces to an upstream object store.
+  * object-store - The same components as above, but this time accessed from the SPA through the api-gw.
 
 For simplicity, these software components are built into a single
 container image. See [Dockerfile](ci/Dockerfile) and
@@ -28,7 +32,7 @@ container image. See [Dockerfile](ci/Dockerfile) and
 
 ## Infrastructure Prerequisites
 
-These katas assume the availability of a Kubernetes cluster with some preconfigured services:
+These katas assume the availability of a Kubernetes cluster with some pre-configured services:
 
 - A KeyCloak instance. No configuration of KeyCloak is necessary, we
   will configure KeyCloak with realm, clients and users in [Setting up

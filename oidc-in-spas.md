@@ -39,8 +39,6 @@ variable above.:
 Initially the SPA will look like shown below, but it will not be fully
 functional since we are still missing some components.
 
-TODO update screen shot
-
 > ![SPA login screen](images/spa-login.png)
 
 ### Deploy BFF
@@ -126,6 +124,8 @@ kubectl apply -f kubernetes/spa-api-gw.yaml
 ```console
 kubectl delete -f kubernetes/spa-cdn.yaml
 kubectl delete -f kubernetes/spa-login.yaml
-kubectl delete cm spa-cdn spa-login
+kubectl delete -f kubernetes/spa-api-gw.yaml
+kubectl delete -f kubernetes/protected-api.yaml
+kubectl delete cm spa-cdn spa-login api
 kubectl delete secret client1
 ```
