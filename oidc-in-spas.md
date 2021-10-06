@@ -141,10 +141,10 @@ and second 'Console' to watch debug output from the SPA:
 
 The four 'login-related' buttons are bound to BFF operations as follows:
 
-- `Login` - BFF path `/login` - the BFF will return a URL which the SPA should redirect to for OIDC login
-- `Logout` - BFF path `/logout` - the BFF will return a URL which the SPA should redirect to for OIDC logout
-- `Get User Info` - BFF path `/userinfo` - the BFF will return ID token claims
-- `Refresh Tokens` - BFF path `/refresh` - the BFF will initiate token refresh from the OIDC provider
+- `Login` - BFF path `/login/start` - the BFF will return a URL which the SPA should redirect to for OIDC login
+- `Logout` - BFF path `/login/logout` - the BFF will return a URL which the SPA should redirect to for OIDC logout
+- `Get User Info` - BFF path `/login/userinfo` - the BFF will return ID token claims
+- `Refresh Tokens` - BFF path `/login/refresh` - the BFF will initiate token refresh from the OIDC provider
 
 Finally, the SPA will *on all pageloads* call the BFF path
 `/pageload`. This is necessary to forward the authorization code flow
@@ -173,9 +173,15 @@ This is because the Content-Security-Policy did not allow in-line Javascript in 
 
 When clicking the `Login` button, the SPA calls the `doBFFLogin()`
 function and makes a request to the BFF. The BFF return a JSON
-structure with an `authRedirUrl` where the SPA should redirect for the
-OIDC login. Further details of the BFF communication can be found in
-the [BFF README](spa/bff/README.md).
+structure with an `authRedirUrl` field with where the SPA should
+redirect for the OIDC login.
+
+The BFF is basically just an remote-procedure-call OIDC library.
+Spend a few minutes looking through the interface to the BFF in the
+[BFF README](spa/bff/README.md).
+
+The SPA use a network function `doBFFRequest()` to perform the HTTP
+`POST` operation:
 
 ```
 const doBFFLogin = async () => {
@@ -183,6 +189,87 @@ const doBFFLogin = async () => {
     location.href = data['authRedirUrl']
 }
 ```
+
+This is very similar to an ordinary server-side OIDC application, with
+the exception, that the server side application would return an HTTP
+303 redirect message instead of relying on a browser side application
+doing the redirect. For reference, compare this with the `/login`
+operation in the very first server-side client we did in [Confidential
+Client with Authorization Code Flow - Part
+1](confidential-client-auth-code-flow.md) to see the similarities.
+
+Next, click the `Login` button.
+
+In the logs from the BFF, you will see, that it returns a redirect URL very similar to what we have seen before:
+
+```
+Return authRedirUrl: https://keycloak.user ... client_id=spa&scope=openid%20profile&response_type=code ...
+```
+
+Also, in the SPA console you will see, that the SPA calls-back to the
+BFF with the authorization code flow `code` (you may have to unfold
+the console log message to see the full details):
+
+```
+doRequest POST /login/pageload  {pageUrl: "https://spa.user2.mvl.eficode.academy/?state=xxxxx&session_state=yyyyy&code=xxxxx"}
+```
+
+And you will see, that the BFF responds with information about our
+logged-in state:
+
+```
+Pageload data {loggedIn: true, handledAuth: true}
+```
+
+## Get UserInfo from BFF
+
+Next, click the `Get User Info` button to get the ID token claims. One
+of two things will now happen:
+
+1. You receive userinfo data and the SPA will show the details. You
+may recognize this as ID token claims.
+
+2. Your access token has expired (remember, that we set the access
+token lifespan to 1 minute when we configured the SPA OIDC
+client). The UserInfo area will show `**ERROR** (tokens
+expired?)`. Use the `Refresh Tokens` button to initiate token refresh
+through the BFF.
+
+If your tokens where not expired, its worth spending a minute to let
+them expire and try the refresh procedure. *A full-fledged SPA would
+obviously need to detect this situation and automatically refresh
+tokens without user interactions.*
+
+## Accessing the Protected API
+
+The SPA has two buttons for interacting with the protected object store:
+
+- `Create Object` - does a `POST` towards the `/api/object` path. The
+  `api-gw` rewrites this path and strips `/api`, hence we end up with
+  a `POST` towards the object-store `/object` path, which stores the object and
+  returns the object ID. See also the [object-store
+  implementation](object-store/src/index.js).
+
+- `List Objects` - does a `GET` towards the `/api/objects` path to
+  fetch all object ID. The `api-gw` rewrites this path and strips
+  `/api`, hence we end up with a `GET` towards the object-store
+  `/objects` path.
+
+To watch the authorization successes and failures, run the following
+command to show API logs:
+
+```console
+kubectl logs -f --tail=-1 -l app=api
+```
+
+Watch particularly for the HTTP status codes, e.g. the following show a success (HTTP code 200). Failures should similarly show a [HTTP code 401](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401).
+
+```
+GET /objects HTTP/1.1" 200 ...
+```
+
+Experiment with listing and creating objects in both logged-in,
+logged-out and tokens-expired situations.
 
 
 ### Clean up
