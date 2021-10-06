@@ -15,7 +15,7 @@ spec:
         app: spa-login
     spec:
       containers:
-      - image: praqma/oidc-oauth2-katas-client:sha-62fa757
+      - image: praqma/oidc-oauth2-katas-client:sha-1b94e8e
         name: client
         command: ["node", "src/index.js"]
         workingDir: /apps/bff
@@ -23,12 +23,12 @@ spec:
         - name: CLIENT_ID
           valueFrom:
             secretKeyRef:
-              name: client1
+              name: spa-client
               key: client_id
         - name: CLIENT_SECRET
           valueFrom:
             secretKeyRef:
-              name: client1
+              name: spa-client
               key: client_secret
         - name: REDIRECT_URL
           valueFrom:
