@@ -24,12 +24,23 @@ the terminal with `curl`.
 
 ### Deploy Client
 
-We assume you have configuration data available as environment
-variables as created in the [Confidential Client with Authorization
-Code Flow](confidential-client-auth-code-flow.md) exercise. If not,
-revisit the environment variable setup of that exercise.
+First, set some variables that help us build URLs:
 
-Create a Kubernetes `ConfigMap` and `Secret` for client configuration:
+```console
+export USER_NUM=<X>             # Use your assigned user number
+export TRAINING_NAME=<xxx>      # Get this from your trainer
+export CLIENT1_ID=client1
+export CLIENT1_SECRET=<xxx>     # This is your client1 'credential'
+```
+
+For convenience, set the following variables:
+
+```console
+export CLIENT1_BASE_URL=https://client1.user$USER_NUM.$TRAINING_NAME.eficode.academy
+export OIDC_ISSUER_URL=https://keycloak.user$USER_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm
+```
+
+Next, create a Kubernetes `ConfigMap` and `Secret` for client configuration:
 
 ```console
 kubectl create secret generic client1 \
