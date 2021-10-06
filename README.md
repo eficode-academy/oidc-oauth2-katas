@@ -15,6 +15,8 @@ Exercises for the [Eficode Academy](https://www.eficode.com/academy) *Securing A
 
 ## Software Components
 
+The exercises use the following software components:
+
 - `client-nodejs` - A NodeJS client that implements the OIDC authorization code flow in a DIY fashion.
 - `client-nodejs-v2` - A NodeJS client that use a Passport-based NodeJS module to implement the OIDC authorization code flow.
 - `object-store` - An object store that implement authorization policies using a Passport-based module.
@@ -24,7 +26,7 @@ Exercises for the [Eficode Academy](https://www.eficode.com/academy) *Securing A
   * `cdn` - A simple server for static SPA assets. Applies CSP.
   * `login` - A backend-for-frontend component that implements OIDC server-side
   * `api-gw` - A component that works together with the login/bff component for exchanging cookies for tokens. The api-gw interfaces to an upstream object store.
-  * `object-store` - The same components as above, but this time accessed from the SPA through the api-gw.
+  * `object-store` - The same components as above, but this time accessed from the SPA through the `api-gw`.
 
 For simplicity, these software components are built into a single
 container image. See [Dockerfile](ci/Dockerfile) and
@@ -34,8 +36,12 @@ container image. See [Dockerfile](ci/Dockerfile) and
 
 These katas assume the availability of a Kubernetes cluster with some pre-configured services:
 
-- A KeyCloak instance. No configuration of KeyCloak is necessary, we
+- A KeyCloak deployment. No configuration of KeyCloak is necessary, we
   will configure KeyCloak with realm, clients and users in [Setting up
   KeyCloak](setting-up-keycloak.md).
 - DNS, TLS and ingress routing from sub-domains `client1`, `client2`,
   `api` and `hazard` to Kubernetes services of the same name.
+- DNS, TLS and ingress routing from sub-domain `spa` with path routing as follows:
+   * `/api` routed to Kubernetes service `spa-api-gw`
+   * `/login` routed to Kubernetes service `spa-login` with stripping of `/login` path prefix
+   * `/` routed to Kubernetes service `spa-cdn`
