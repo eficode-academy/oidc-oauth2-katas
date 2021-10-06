@@ -169,24 +169,25 @@ kubectl logs -f -l app=object-store-v2
 
 <details>
 <summary>I don't want to change any source code !</summary>
-Fear not. The changes described below are available with the katas. Below, when asked to deploy the changed code, use the following commands instead to deploy code that already have implemented the described protection:
+Fear not. The changes described below are available with the exercises. Below, when asked to deploy the changed code, use the following commands instead to deploy code that already have implemented the described protection:
 
-```
-kubectl cp object-store-v2/src-with-csrf-protection/views/index.ejs `kubectl get pods -l app=object-store-v2 -o=jsonpath='{.items[0].metadata.name}'`:/app/oidc-oauth2-katas/object-store-v2/src/views/
-kubectl cp object-store-v2/src-with-csrf-protection/client.js `kubectl get pods -l app=object-store-v2 -o=jsonpath='{.items[0].metadata.name}'`:/app/oidc-oauth2-katas/object-store-v2/src/
+```console
+kubectl cp object-store-v2/src-with-csrf-protection/views/index.ejs `kubectl get pods -l app=object-store-v2 -o=jsonpath='{.items[0].metadata.name}'`:/apps/object-store-v2/src/views/
+kubectl cp object-store-v2/src-with-csrf-protection/client.js `kubectl get pods -l app=object-store-v2 -o=jsonpath='{.items[0].metadata.name}'`:/apps/object-store-v2/src/
 ```
 </details>
 
 The essence of the protection is to include some secret information in
-the form, which we can use to validate, that the POST operation stems
-from a valid form received from the protected object store. The hazard
+the HTML `form`, which we can use to validate, that the POST operation stems
+from a valid `form` received from the protected object store. The hazard
 service cannot guess or fake this information.
 
 Open the source for the object store front page
-`object-store-v2/src/views/index.ejs` and add a hidden `csrf-nonce` input as
-shown in the first line of the following form excerpt. This input will accompany
-all valid `POST` requests made FROM this page. Since access to the page is
-protected by OAuth2-proxy, only legitimate users can issue POST requests with a
+`object-store-v2/src/views/index.ejs` and add a hidden `csrf-nonce`
+input as shown in the first second of the following form excerpt
+(around line 18). This input will accompany all valid `POST` requests
+made FROM this page. Since access to the page is protected by
+OAuth2-proxy, only legitimate users can issue POST requests with a
 valid nonce.
 
 ```
@@ -259,8 +260,8 @@ To deploy the changes, use `kubectl cp` to copy the code changes to the running
 object store POD:
 
 ```console
-kubectl cp object-store-v2/src/views/index.ejs `kubectl get pods -l app=object-store-v2 -o=jsonpath='{.items[0].metadata.name}'`:/app/oidc-oauth2-katas/object-store-v2/src/views/
-kubectl cp object-store-v2/src/client.js `kubectl get pods -l app=object-store-v2 -o=jsonpath='{.items[0].metadata.name}'`:/app/oidc-oauth2-katas/object-store-v2/src/
+kubectl cp object-store-v2/src/views/index.ejs `kubectl get pods -l app=object-store-v2 -o=jsonpath='{.items[0].metadata.name}'`:/apps/object-store-v2/src/views/
+kubectl cp object-store-v2/src/client.js `kubectl get pods -l app=object-store-v2 -o=jsonpath='{.items[0].metadata.name}'`:/apps/object-store-v2/src/
 ```
 
 After this, you will see from the POD log output, that the object store service
