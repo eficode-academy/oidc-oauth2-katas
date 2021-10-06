@@ -7,6 +7,12 @@ backend-for-frontend (BFF) pattern. This means, that for improved
 security, the OIDc functionality is handled server-side in close
 collaboration with the SPA.
 
+The architecture is illustrated below. The API (white box in lower
+right corner) the SPA accesses is the `object-store` we used in
+exercise [Protecting Resources and APIs](protecting-apis.md)
+
+> ![SPA components and architecture](images/spa-architecture.png)
+
 ## Learning Goals
 
 - OIDC in SPAs
@@ -14,27 +20,40 @@ collaboration with the SPA.
 
 ## Exercise
 
+First, set some variables that help us build URLs:
+
 ```console
 export DOMAIN=user$USER_NUM.$TRAINING_NAME.eficode.academy
 export SPA_BASE_URL=https://spa.$DOMAIN
 ```
 
+Next, create a new OIDC client `spa` for this exercise - use the same
+procedure as in previous exercises [Setting up
+KeyCloak](setting-up-keycloak.md), **with the exception, that you
+should set `Access Token Lifespan` to 1 minute**. This is a low
+lifespan, but we do this to demonstrate token refresh without too
+much waiting time.
+
 ### Deploy SPA
 
-TODO prepare config.json
+First we deploy a simple server that merely servers the static files
+of the SPA. We call this `spa-cdn`. This server will send a
+[Content-Security-Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy)
+(CSP) HTTP header for added security. We configure the CSP policy such
+that the SPA is only allowed make connections to its own base
+URL. This provides strong protection against cross-site scripting
+attacks.
+
+Configure and deploy `spa-cdn` with:
 
 ```console
 kubectl create configmap spa-cdn \
     --from-literal=csp_connect_sources="$SPA_BASE_URL"
-```
-
-```console
 kubectl apply -f kubernetes/spa-cdn.yaml
 ```
 
-This deploys a content-delivery POD to Kubernetes and you can now
-access the SPA at the URL you stored in the `DOMAIN` environment
-variable above.:
+You can now access the SPA at the URL you stored in the `SPA_BASE_URL`
+environment variable above.:
 
 Initially the SPA will look like shown below, but it will not be fully
 functional since we are still missing some components.
@@ -43,23 +62,23 @@ functional since we are still missing some components.
 
 ### Deploy BFF
 
-Next we will deploy the BFF, which we call `login`. First create
-environment variables for our identity provider:
+Next we will deploy the backend-for-frontend (BFF), which we call
+`login`. First create environment variables for our identity provider:
 
 ```console
-export CLIENT1_ID=client1
-export CLIENT1_SECRET=<xxx>     # This is your client1 'credential'
+export SPA_CLIENT_ID=spa
+export SPA_CLIENT_SECRET=<xxx>
 export OIDC_ISSUER_URL=https://keycloak.$DOMAIN/auth/realms/myrealm
 ```
 
-and create a secret and configmap with this information. Note that we
-use the SPA base URL as the redirection URL, i.e. where we return
+and create a `Secret` and `ConfigMap` with this information. Note that
+we use the SPA base URL as the redirection URL, i.e. where we return
 after having completed login at the identity provider:
 
 ```console
-kubectl create secret generic client1 \
-    --from-literal=client_id=$CLIENT1_ID \
-    --from-literal=client_secret=$CLIENT1_SECRET
+kubectl create secret generic spa-client \
+    --from-literal=client_id=$SPA_CLIENT_ID \
+    --from-literal=client_secret=$SPA_CLIENT_SECRET
 kubectl create configmap spa-login \
     --from-literal=oidc_issuer_url=$OIDC_ISSUER_URL  \
     --from-literal=redirect_url=$SPA_BASE_URL
@@ -71,28 +90,16 @@ Finally, deploy the `login` component:
 kubectl apply -f kubernetes/spa-login.yaml
 ```
 
-With the `login` component deployed, we are almost able to perform a
-login - what are we missing (hint, its related to the authorization
-code flow between BFF and identity provider)?
-
-<details>
-<summary>:bulb:Hint</summary>
-With the initial login request from BFF to identity provider, a number of parameters are passed, e.g. scope, client-ID and redirection URL for where to go after the login. Are all these parameters correct now?
-<details>
-<summary>:bulb:Answer</summary>
-We have used the `client1` settings configured for previous exercises, e.g. the redirection URL configured in the identity provider does not match the SPA and is probably configured to something starting with `client1` right now. You need to go to the KeyCloak admin interface and update this URL to match the SPA.
-</details>
-</details>
-
-
-
 ### Deploy API
 
 We will use the 'object store' from exercise [Protecting Resources and
 APIs](protecting-apis.md) as an example of a protected resource with
-an API that use OIDC/OAuth2 for authorizing access.
+an API that use an access token to authorizing access. The
+object-store allow any access token as long at it comes from a trustet
+provider.
 
-Create a Kubernetes `ConfigMap` for API OIDC issuer configuration:
+Create a `ConfigMap` with the OIDC issuer from which the object-store
+will trust access tokens:
 
 ```console
 kubectl create configmap api \
@@ -108,15 +115,74 @@ kubectl apply -f kubernetes/protected-api.yaml
 ### Deploy API Gateway
 
 The SPA cannot access the API yet, since it needs a component to
-exchange the cookie for an access token. The API gateway component
-does that.
+exchange the session cookie for an access token. The API gateway
+component does that.
 
-
+Deploy the API gateway with:
 
 ```console
 kubectl apply -f kubernetes/spa-api-gw.yaml
 ```
 
+All components of the SPA are now deployed.
+
+## Login Through Backend-for-Frontend
+
+To monitor an OIDC login with the SPA, monitor the BFF logs with the following command:
+
+```console
+kubectl logs -f --tail=-1 -l app=spa-login -c client
+```
+
+Second, right-click in your browser and select 'Inspect' in the menu
+and second 'Console' to watch debug output from the SPA:
+
+> ![SPA Console](images/spa-console-anno.png)
+
+The four 'login-related' buttons are bound to BFF operations as follows:
+
+- `Login` - BFF path `/login` - the BFF will return a URL which the SPA should redirect to for OIDC login
+- `Logout` - BFF path `/logout` - the BFF will return a URL which the SPA should redirect to for OIDC logout
+- `Get User Info` - BFF path `/userinfo` - the BFF will return ID token claims
+- `Refresh Tokens` - BFF path `/refresh` - the BFF will initiate token refresh from the OIDC provider
+
+Finally, the SPA will *on all pageloads* call the BFF path
+`/pageload`. This is necessary to forward the authorization code flow
+`code` back to the BFF such that it can complete an authorization code
+flow login.
+
+Inspect the SPA Javascript
+[app.js](spa/spa-app-vanilla-js/dist/js/app.js) and observe e.g. how
+the `doLogin` button is bound to the `doBFFLogin` Javascript function
+on page load and also how the SPA calls `doBFFPageLoad()` with the
+full page URL:
+
+```
+window.addEventListener('load', () => {
+    ...
+    $('#doLogin').click(doBFFLogin);
+    ...
+    doBFFPageLoad(location.href);
+});
+```
+
+<details>
+<summary>:bulb: The SPA links HTML buttons with code explicitly in Javascript code instead of embedding it in the HTML. Why could that be?</summary>
+This is because the Content-Security-Policy did not allow in-line Javascript in HTML code. This is to protect against cross-site injection attacks.
+</details>
+
+When clicking the `Login` button, the SPA calls the `doBFFLogin()`
+function and makes a request to the BFF. The BFF return a JSON
+structure with an `authRedirUrl` where the SPA should redirect for the
+OIDC login. Further details of the BFF communication can be found in
+the [BFF README](spa/bff/README.md).
+
+```
+const doBFFLogin = async () => {
+    data = await doBFFRequest('POST', '/start', null);
+    location.href = data['authRedirUrl']
+}
+```
 
 
 ### Clean up
@@ -127,5 +193,5 @@ kubectl delete -f kubernetes/spa-login.yaml
 kubectl delete -f kubernetes/spa-api-gw.yaml
 kubectl delete -f kubernetes/protected-api.yaml
 kubectl delete cm spa-cdn spa-login api
-kubectl delete secret client1
+kubectl delete secret spa-client
 ```
