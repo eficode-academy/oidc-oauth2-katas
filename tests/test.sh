@@ -64,29 +64,21 @@ function exercise-confidential-client-auth-code-flow-test {
 
 function exercise-using-tokens-setup-env {
     common-setup-env
-    export CLIENT1_BASE_URL=https://client1.user$USER_NUM.$TRAINING_NAME.eficode.academy
+    using-tokens.md-deploy-client-block2
 }
 
 function exercise-using-tokens-deploy {
     exercise-using-tokens-setup-env
 
-    kubectl create secret generic client1 \
-            --from-literal=client_id=$CLIENT1_ID \
-            --from-literal=client_secret=$CLIENT1_SECRET
-    kubectl create configmap client1 \
-            --from-literal=oidc_auth_url=$OIDC_AUTH_URL  \
-            --from-literal=oidc_token_url=$OIDC_TOKEN_URL \
-            --from-literal=client_base_url=$CLIENT1_BASE_URL
+    using-tokens.md-deploy-client-block3
+    using-tokens.md-deploy-client-block4
 
-    kubectl apply -f $KATAS_PATH/kubernetes/client1.yaml
     kubectl wait --for=condition=ready pod -l app=client1 --timeout=60s
     sleep 10
 }
 
 function exercise-using-tokens-undeploy {
-    kubectl delete -f $KATAS_PATH/kubernetes/client1.yaml
-    kubectl delete secret client1
-    kubectl delete configmap client1
+    using-tokens.md-clean-up-block1
 }
 
 function exercise-using-tokens-test {
@@ -102,23 +94,17 @@ function exercise-using-tokens-test {
 
 function exercise-protecting-apis-setup-env {
     common-setup-env
-    export CLIENT1_BASE_URL=https://client1.user$USER_NUM.$TRAINING_NAME.eficode.academy
-    export API_EP=https://api.user$USER_NUM.$TRAINING_NAME.eficode.academy
+    protecting-apis.md-exercise-block2
+    protecting-apis.md-accessing-the-api-block2
 }
 
 function exercise-protecting-apis-deploy {
     exercise-protecting-apis-setup-env
 
-    kubectl create secret generic client1 \
-            --from-literal=client_id=$CLIENT1_ID \
-            --from-literal=client_secret=$CLIENT1_SECRET
-    kubectl create configmap client1 \
-            --from-literal=oidc_issuer_url=$OIDC_ISSUER_URL  \
-            --from-literal=client_base_url=$CLIENT1_BASE_URL
-    kubectl apply -f $KATAS_PATH/kubernetes/client1-v2.yaml
-    kubectl create configmap api \
-            --from-literal=oidc_issuer_url=$OIDC_ISSUER_URL
-    kubectl apply -f $KATAS_PATH/kubernetes/protected-api.yaml
+    protecting-apis.md-deploy-client-block1
+    protecting-apis.md-deploy-client-block2
+    protecting-apis.md-deploy-api-block1
+    protecting-apis.md-deploy-api-block2
 
     kubectl wait --for=condition=ready pod -l app=client1 --timeout=60s
     kubectl wait --for=condition=ready pod -l app=api --timeout=60s
@@ -126,11 +112,7 @@ function exercise-protecting-apis-deploy {
 }
 
 function exercise-protecting-apis-undeploy {
-    kubectl delete -f $KATAS_PATH/kubernetes/protected-api.yaml
-    kubectl delete cm api
-    kubectl delete -f $KATAS_PATH/kubernetes/client1-v2.yaml
-    kubectl delete cm client1
-    kubectl delete secret client1
+    protecting-apis.md-clean-up-block1
 }
 
 function exercise-protecting-apis-test {
@@ -177,6 +159,35 @@ function exercise-csrf-attacks-undeploy {
 
 function exercise-csrf-attacks-test {
     exercise-csrf-attacks-setup-env
+
+    HTTP_STATUS=$(curl -s $OAUTH2_PROXY_EP -o /dev/null -w '%{http_code}')
+    if [ "$HTTP_STATUS" != '403' ]; then
+        echo "*** Error, got HTTP status $HTTP_STATUS"
+        let ERRORS+=1
+    else
+        let SUCCESSES+=1
+    fi
+
+    # Our test inludes the two code update schenarios
+    csrf-attacks.md-protecting-the-object-store-against-csrf-block2
+
+    HTTP_STATUS=$(curl -s $OAUTH2_PROXY_EP -o /dev/null -w '%{http_code}')
+    if [ "$HTTP_STATUS" != '403' ]; then
+        echo "*** Error, got HTTP status $HTTP_STATUS"
+        let ERRORS+=1
+    else
+        let SUCCESSES+=1
+    fi
+
+    csrf-attacks.md-protecting-the-object-store-against-csrf-block3
+
+    HTTP_STATUS=$(curl -s $OAUTH2_PROXY_EP -o /dev/null -w '%{http_code}')
+    if [ "$HTTP_STATUS" != '403' ]; then
+        echo "*** Error, got HTTP status $HTTP_STATUS"
+        let ERRORS+=1
+    else
+        let SUCCESSES+=1
+    fi
 }
 
 
@@ -223,22 +234,27 @@ function exercise-oidc-in-spas-test {
 
 function test-all {
 
+    echo "### exercise-confidential-client-auth-code-flow"
     exercise-confidential-client-auth-code-flow-deploy
     exercise-confidential-client-auth-code-flow-test
     exercise-confidential-client-auth-code-flow-undeploy
 
+    echo "### exercise-using-tokens"
     exercise-using-tokens-deploy
     exercise-using-tokens-test
     exercise-using-tokens-undeploy
 
+    echo "### exercise-protecting-apis"
     exercise-protecting-apis-deploy
     exercise-protecting-apis-test
     exercise-protecting-apis-undeploy
 
+    echo "### exercise-csrf-attacks"
     exercise-csrf-attacks-deploy
     exercise-csrf-attacks-test
     exercise-csrf-attacks-undeploy
 
+    echo "### exercise-oidc-in-spas"
     exercise-oidc-in-spas-deploy
     exercise-oidc-in-spas-test
     exercise-oidc-in-spas-undeploy
