@@ -31,6 +31,11 @@ For convenience, set the following variables:
 ```console
 export CLIENT1_ID=client1
 export CLIENT1_SECRET=<xxx>     # This is your client1 'credential'
+```
+
+And create an environment variable with the client and identity provider URLs:
+
+```console
 export CLIENT1_BASE_URL=https://client1.user$USER_NUM.$TRAINING_NAME.eficode.academy
 export OIDC_ISSUER_URL=https://keycloak.user$USER_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm
 ```

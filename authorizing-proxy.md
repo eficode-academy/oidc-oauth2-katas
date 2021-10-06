@@ -80,7 +80,7 @@ secret with the client ID and secret. Also, OAuth2-proxy will manage a
 session through signed cookies, i.e. it requires a secret for cookie
 signatures. Thus, we create a secret for OAuth2-proxy with:
 
-```
+```console
 kubectl create secret generic client1 \
     --from-literal=client-id=$CLIENT1_ID \
     --from-literal=client-secret=$CLIENT1_SECRET \

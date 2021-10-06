@@ -224,6 +224,11 @@ one from client1**):
 ```console
 export CLIENT2_ID=client2
 export CLIENT2_SECRET=<xxx>     # This is your client2 'credential'
+```
+
+And create an environment variable with the client base URL:
+
+```console
 export CLIENT2_BASE_URL=https://client2.user$USER_NUM.$TRAINING_NAME.eficode.academy
 ```
 

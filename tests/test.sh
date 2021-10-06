@@ -19,9 +19,13 @@ source $SELF_PATH/markdown-blocks.sh
 function common-setup-env {
     # These are a bit random - needs real idp values
     export CLIENT1_ID=client1
+    export CLIENT2_ID=client2
     export SPA_CLIENT_ID=spa
     if [ -z "$CLIENT1_SECRET" ]; then
         export CLIENT1_SECRET=123456789
+    fi
+    if [ -z "$CLIENT2_SECRET" ]; then
+        export CLIENT2_SECRET=123456789
     fi
     if [ -z "$SPA_CLIENT_SECRET" ]; then
         export SPA_CLIENT_SECRET=123456789
@@ -49,6 +53,7 @@ function exercise-confidential-client-auth-code-flow-deploy {
 
 function exercise-confidential-client-auth-code-flow-undeploy {
     confidential-client-auth-code-flow.md-clean-up-block1
+    kubectl wait --for=delete pod -l app=client1 --timeout=120s || true
 }
 
 function exercise-confidential-client-auth-code-flow-test {
@@ -61,6 +66,46 @@ function exercise-confidential-client-auth-code-flow-test {
         let SUCCESSES+=1
     fi
 }
+
+
+# This exercise extends 'confidential-client-auth-code-flow'
+function exercise-confidential-client-auth-code-flow2-setup-env {
+    common-setup-env
+    exercise-confidential-client-auth-code-flow-setup-env
+    confidential-client-auth-code-flow2.md-single-sign-on-sso-block2
+    confidential-client-auth-code-flow2.md-single-sign-on-sso-block3
+}
+
+function exercise-confidential-client-auth-code-flow2-deploy {
+    exercise-confidential-client-auth-code-flow2-setup-env
+
+    exercise-confidential-client-auth-code-flow-deploy
+    confidential-client-auth-code-flow2.md-single-sign-on-sso-block4
+    confidential-client-auth-code-flow2.md-single-sign-on-sso-block5
+
+    kubectl wait --for=condition=ready pod -l app=client2 --timeout=60s
+    sleep 10
+}
+
+function exercise-confidential-client-auth-code-flow2-undeploy {
+    confidential-client-auth-code-flow2.md-clean-up-block1
+    kubectl wait --for=delete pod -l app=client2 --timeout=120s || true
+}
+
+function exercise-confidential-client-auth-code-flow2-test {
+    exercise-confidential-client-auth-code-flow2-setup-env
+
+    exercise-confidential-client-auth-code-flow-test
+
+    HTTP_STATUS=$(curl -s $CLIENT2_BASE_URL -o /dev/null -w '%{http_code}')
+    if [ "$HTTP_STATUS" != '200' ]; then
+        echo "*** Error, got HTTP status $HTTP_STATUS"
+        let ERRORS+=1
+    else
+        let SUCCESSES+=1
+    fi
+}
+
 
 function exercise-using-tokens-setup-env {
     common-setup-env
@@ -79,6 +124,7 @@ function exercise-using-tokens-deploy {
 
 function exercise-using-tokens-undeploy {
     using-tokens.md-clean-up-block1
+    kubectl wait --for=delete pod -l app=client1 --timeout=120s || true
 }
 
 function exercise-using-tokens-test {
@@ -91,6 +137,7 @@ function exercise-using-tokens-test {
         let SUCCESSES+=1
     fi
 }
+
 
 function exercise-protecting-apis-setup-env {
     common-setup-env
@@ -113,6 +160,8 @@ function exercise-protecting-apis-deploy {
 
 function exercise-protecting-apis-undeploy {
     protecting-apis.md-clean-up-block1
+    kubectl wait --for=delete pod -l app=client1 --timeout=120s || true
+    kubectl wait --for=delete pod -l app=api --timeout=120s || true
 }
 
 function exercise-protecting-apis-test {
@@ -120,6 +169,45 @@ function exercise-protecting-apis-test {
 
     HTTP_STATUS=$(curl -s $API_EP/objects -o /dev/null -w '%{http_code}')
     if [ "$HTTP_STATUS" != '401' ]; then
+        echo "*** Error, got HTTP status $HTTP_STATUS"
+        let ERRORS+=1
+    else
+        let SUCCESSES+=1
+    fi
+}
+
+
+function exercise-authorizing-proxy-setup-env {
+    common-setup-env
+    authorizing-proxy.md-exercise-block3
+    authorizing-proxy.md-exercise-block5
+}
+
+function exercise-authorizing-proxy-deploy {
+    exercise-authorizing-proxy-setup-env
+
+    authorizing-proxy.md-exercise-block1
+    authorizing-proxy.md-exercise-block4
+    authorizing-proxy.md-exercise-block6
+    authorizing-proxy.md-exercise-block7
+    authorizing-proxy.md-exercise-block8
+
+    kubectl wait --for=condition=ready pod -l app=oauth2-proxy --timeout=60s
+    kubectl wait --for=condition=ready pod -l app=httpbin --timeout=60s
+    sleep 10
+}
+
+function exercise-authorizing-proxy-undeploy {
+    authorizing-proxy.md-clean-up-block1
+    kubectl wait --for=delete pod -l app=oauth2-proxy --timeout=120s || true
+    kubectl wait --for=delete pod -l app=httpbin --timeout=120s || true
+}
+
+function exercise-authorizing-proxy-test {
+    exercise-authorizing-proxy-setup-env
+
+    HTTP_STATUS=$(curl -s $OAUTH2_PROXY_EP/objects -o /dev/null -w '%{http_code}')
+    if [ "$HTTP_STATUS" != '403' ]; then
         echo "*** Error, got HTTP status $HTTP_STATUS"
         let ERRORS+=1
     else
@@ -155,6 +243,9 @@ function exercise-csrf-attacks-deploy {
 function exercise-csrf-attacks-undeploy {
     exercise-csrf-attacks-setup-env
     csrf-attacks.md-clean-up-block1
+    kubectl wait --for=delete pod -l app=oauth2-proxy --timeout=120s || true
+    kubectl wait --for=delete pod -l app=object-store-v2 --timeout=120s || true
+    kubectl wait --for=delete pod -l app=hazard --timeout=120s || true
 }
 
 function exercise-csrf-attacks-test {
@@ -191,11 +282,50 @@ function exercise-csrf-attacks-test {
 }
 
 
+function exercise-session-storage-setup-env {
+    common-setup-env
+    session-storage.md-exercise-block3
+}
+
+function exercise-session-storage-deploy {
+    exercise-session-storage-setup-env
+
+    session-storage.md-sessions-are-not-shared-across-pods-block1
+    session-storage.md-sessions-are-not-shared-across-pods-block2
+    session-storage.md-sessions-are-not-shared-across-pods-block3
+    session-storage.md-login-state-is-not-shared-across-pods-block1
+    # This deletes first version
+    session-storage.md-adding-shared-session-storage-block1
+    session-storage.md-adding-shared-session-storage-block2
+    session-storage.md-adding-shared-session-storage-block3
+
+    # FIXME: Doesn't work with the delete above
+    #kubectl wait --for=condition=ready pod -l app=client1 --timeout=60s
+    kubectl wait --for=condition=ready pod -l app=session-store --timeout=60s
+    sleep 10
+}
+
+function exercise-session-storage-undeploy {
+    session-storage.md-clean-up-block1
+    kubectl wait --for=delete pod -l app=client1 --timeout=120s || true
+    kubectl wait --for=delete pod -l app=session-store --timeout=120s || true
+}
+
+function exercise-session-storage-test {
+    exercise-session-storage-setup-env
+    HTTP_STATUS=$(curl -s $CLIENT1_BASE_URL -o /dev/null -w '%{http_code}')
+    if [ "$HTTP_STATUS" != '200' ]; then
+        echo "*** Error, got HTTP status $HTTP_STATUS"
+        let ERRORS+=1
+    else
+        let SUCCESSES+=1
+    fi
+}
+
 
 function exercise-oidc-in-spas-setup-env {
     common-setup-env
-    export DOMAIN=user$USER_NUM.$TRAINING_NAME.eficode.academy
-    export SPA_BASE_URL=https://spa.$DOMAIN
+    oidc-in-spas.md-exercise-block1
 }
 
 function exercise-oidc-in-spas-deploy {
@@ -218,6 +348,11 @@ function exercise-oidc-in-spas-deploy {
 
 function exercise-oidc-in-spas-undeploy {
     oidc-in-spas.md-clean-up-block1
+    kubectl wait --for=delete pod -l app=spa-cdn --timeout=120s || true
+    kubectl wait --for=delete pod -l app=spa-login --timeout=120s || true
+    kubectl wait --for=delete pod -l app=spa-api-gw --timeout=120s || true
+    kubectl wait --for=delete pod -l app=api --timeout=120s || true
+    kubectl wait --for=delete pod -l app=session-store --timeout=120s || true
 }
 
 function exercise-oidc-in-spas-test {
@@ -239,6 +374,11 @@ function test-all {
     exercise-confidential-client-auth-code-flow-test
     exercise-confidential-client-auth-code-flow-undeploy
 
+    echo "### exercise-confidential-client-auth-code-flow2"
+    exercise-confidential-client-auth-code-flow2-deploy
+    exercise-confidential-client-auth-code-flow2-test
+    exercise-confidential-client-auth-code-flow2-undeploy
+
     echo "### exercise-using-tokens"
     exercise-using-tokens-deploy
     exercise-using-tokens-test
@@ -249,10 +389,20 @@ function test-all {
     exercise-protecting-apis-test
     exercise-protecting-apis-undeploy
 
+    echo "### exercise-authorizing-proxy"
+    exercise-authorizing-proxy-deploy
+    exercise-authorizing-proxy-test
+    exercise-authorizing-proxy-undeploy
+
     echo "### exercise-csrf-attacks"
     exercise-csrf-attacks-deploy
     exercise-csrf-attacks-test
     exercise-csrf-attacks-undeploy
+
+    echo "### exercise-session-storage"
+    exercise-session-storage-deploy
+    exercise-session-storage-test
+    exercise-session-storage-undeploy
 
     echo "### exercise-oidc-in-spas"
     exercise-oidc-in-spas-deploy
@@ -273,6 +423,15 @@ do
         exercise-confidential-client-auth-code-flow-test)
             exercise-confidential-client-auth-code-flow-test
         ;;
+        exercise-confidential-client-auth-code-flow2-deploy)
+            exercise-confidential-client-auth-code-flow2-deploy
+        ;;
+        exercise-confidential-client-auth-code-flow2-undeploy)
+            exercise-confidential-client-auth-code-flow2-undeploy
+        ;;
+        exercise-confidential-client-auth-code-flow2-test)
+            exercise-confidential-client-auth-code-flow2-test
+        ;;
         exercise-using-tokens-deploy)
 	    exercise-using-tokens-deploy
 	;;
@@ -287,6 +446,18 @@ do
 	;;
         exercise-protecting-apis-undeploy)
 	    exercise-protecting-apis-undeploy
+	;;
+        exercise-protecting-apis-test)
+	    exercise-protecting-apis-test
+	;;
+        exercise-authorizing-proxy-deploy)
+	    exercise-authorizing-proxy-deploy
+	;;
+        exercise-authorizing-proxy-undeploy)
+	    exercise-authorizing-proxy-undeploy
+	;;
+        exercise-authorizing-proxy-test)
+	    exercise-authorizing-proxy-test
 	;;
         exercise-csrf-attacks-deploy)
             exercise-csrf-attacks-deploy
@@ -308,6 +479,15 @@ do
 	;;
         exercise-oidc-in-spas-test)
 	    exercise-oidc-in-spas-test
+	;;
+        exercise-session-storage-deploy)
+	    exercise-session-storage-deploy
+	;;
+        exercise-session-storage-undeploy)
+	    exercise-session-storage-undeploy
+	;;
+        exercise-session-storage-test)
+	    exercise-session-storage-test
 	;;
         test-all)
 	    test-all
