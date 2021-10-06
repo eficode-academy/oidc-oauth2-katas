@@ -38,10 +38,14 @@ These katas assume the availability of a Kubernetes cluster with some pre-config
 
 - A KeyCloak deployment. No configuration of KeyCloak is necessary, we
   will configure KeyCloak with realm, clients and users in [Setting up
-  KeyCloak](setting-up-keycloak.md).
+  KeyCloak](setting-up-keycloak.md). Exercises are suitable for use
+  with other identity providers but descriptions are for KeyCloak.
+
 - DNS, TLS and ingress routing from sub-domains `client1`, `client2`,
   `api` and `hazard` to Kubernetes services of the same name.
+
 - DNS, TLS and ingress routing from sub-domain `spa` with path routing as follows:
+
    * `/api` routed to Kubernetes service `spa-api-gw`
    * `/login` routed to Kubernetes service `spa-login` with stripping of `/login` path prefix
    * `/` routed to Kubernetes service `spa-cdn`
