@@ -11,7 +11,7 @@ Exercises for the [Eficode Academy](https://www.eficode.com/academy) *Securing A
 - [Using Authorizing Proxies](authorizing-proxy.md)
 - [Protecting against CSRF Attacks](csrf-attacks.md)
 - [Session Storage](session-storage.md)
-- [WIP: OIDC in Browser-based Apps (SPAs)](oidc-in-spas.md)
+- [OIDC in Browser-based Apps (SPAs)](oidc-in-spas.md)
 
 ## Software Components
 
