@@ -16,6 +16,10 @@ security sessions that are involved. You should have `client1` running
 from part-1, if not, visit
 [part-1](confidential-client-auth-code-flow.md) and deploy `client1`.
 
+For reference, the authorization code flow is illustrated below:
+
+> ![Authorization Code Flow](images/auth-code-flow.png)
+
 ## Exercise
 
 ### How the Client Implemented the Authorization Code Flow
