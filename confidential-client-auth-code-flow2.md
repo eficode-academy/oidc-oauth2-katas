@@ -71,15 +71,14 @@ Client`.
 ### Logout
 
 We will re-do the authorization code flow, so we need to logout the
-current user.  The client we currently are using does not have logout
-functionality, so instead we redeploy the client and clear the login
-state in KeyCloak.
+current user.  The client we currently are using does not have full
+logout functionality, so instead we redeploy the client and clear the
+login state in KeyCloak.
 
 Redeploy the client:
 
 ```console
-kubectl delete -f kubernetes/client1.yaml
-kubectl apply -f kubernetes/client1.yaml
+kubectl rollout restart deploy client1
 ```
 
 To clear the login state in KeyCloak, go to KeyCloak and in the
@@ -92,8 +91,10 @@ menu. Next, click on the user ID of the user logged-in and then
 
 ### Login Observed from Client Logs
 
-We can match the above process with the logs from the client. To
-inspect the client logs, use the following command:
+We can match the authorization code flow login process with the logs
+from the client. To inspect the client logs, use the following command
+when the POD restart is done (otherwise you might see logs from old
+POD):
 
 ```console
 kubectl logs -f --tail=-1 -l app=client1 -c client |less
@@ -103,8 +104,8 @@ Initially you will only see around 6 lines of output of environment
 variables with client configuration data.
 
 > Hint: As we get more output, to search in `less` use `\`, to go to
-the start of the logs use `g` and the end use `G`. To exit less use
-`q`. Alternative, use another pager you are comfortable with.
+the start or end of the logs use `g` and`G` respectively. To exit less
+use `q`. Alternatively, use another pager you are comfortable with.
 
 Select `Login` in the client and observe a few more lines in the
 client logs. The login redirection to the identity provider can be
@@ -118,7 +119,7 @@ In the redirection, note how the authorization code flow is initiated
 with a parameter `response_type=code` i.e. we want to initiate an
 authorization code flow and our client redirection URL are included as
 parameter `redirect_uri`. Note that e.g. URLs are encoded such that
-e.g. `:` becomes `%3A`. This is ordinary HTTP URL encoding.
+e.g. `:` becomes `%3A`. This is ordinary HTTP URL-safe encoding.
 
 Enter test user credentials and continue with `SignIn` in
 KeyClock. This should complete the login at the identity provider and
@@ -148,9 +149,9 @@ POST to https://keycloak.user1.mvl.eficode.academy/auth/realms/myrealm/protocol/
 ```
 
 We see, that the code-to-token exchange is authorized with our client
-credentials in the `Authorization` header. If you decode the
+credentials in the `Authorization` header. If you base64 decode the
 credentials data from the `Authorization` header you will find the
-client credentials we configured previously). In the payload of the
+client credentials we configured previously. In the payload of the
 POST we see the code which we now are exchanging for tokens.
 
 Subsequent lines show the tokens received from the exchange in the
@@ -158,13 +159,12 @@ JSON object following the line starting with `Token response`.
 
 ### Identity Provider Session Cookies
 
-To demonstrate, that the user login sessions is independent of the
-client and only exists between your browser and the identity provider,
-we redeploy the client with the following:
+To demonstrate, that the user login session with the identity provider
+is independent of the client and only exists between your browser and
+the identity provider, we restart the client:
 
 ```console
-kubectl delete -f kubernetes/client1.yaml
-kubectl apply -f kubernetes/client1.yaml
+kubectl rollout restart deploy client1
 ```
 
 Reload the client page again when the POD becomes `Running`. The
@@ -173,7 +173,7 @@ browser and identity provider, i.e. you will have to select `Login`
 again. When you click `Login` you will notice that you are immediately
 logged in.
 
-> Note: If you are prompted for login information it might be because the login session has expired. KeyCloak use a session timeout of 30 minutes. If this happens, redeploy the client once more and re-login using the fresh login session.
+> Note: If you are prompted for login information it might be because the login session has expired. KeyCloak use a session timeout of 30 minutes. If this happens, restart the client once more and re-login using the fresh login session.
 
 To see the cookies, which stores this session between browser and
 identity provider, open the identity provider authorization URL (the
@@ -195,7 +195,7 @@ the left-hand side (under `3` in the image) and select
 First, refresh the client in the browser window - you will see, that
 deleting the KeyCloak cookies had no effect on the client.
 
-Second, redeploy the client as above and retry the login. This time
+Second, restart the client as above and retry the login. This time
 you will be prompted for login information.
 
 <details>
