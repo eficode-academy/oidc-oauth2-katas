@@ -138,7 +138,8 @@ app.get('/callback', (req, res) => {
                 }               
                 res.redirect(base_url);
             } else {
-                res.render('error', ...token_data);
+                res.render('error', {error: token_data.error,
+                                     error_description: token_data.error_description});
             }
         });
     });
