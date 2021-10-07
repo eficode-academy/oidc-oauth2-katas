@@ -47,33 +47,9 @@
     <p>This is the access-token we received:</p>
     <div class="framed verbatim"><p><%=access_token%></p></div>
 
-    <p>Access tokens are opaque and cannot be parsed by the client. However, the access-token can be used to fetch user information from the 'userinfo' endpoint (subject to the scope of our access-token).</p>
-
-    <form action="/getuserinfo" method="post">
-      <button type="submit">Read userinfo using access-token</button>
-    </form>
-
-    <p>If the access token scope includes 'api', then we can also read data from the protected API.</p>
-
-    <form action="/read-api" method="post">
-      <div class="row">
-	<button type="submit">Read from API</button>
-        using
-	<select name="auth-token-usage">
-	  <option value="authentication-header">Access token in authentication header</option>
-	  <option value="none">No authentication</option>
-	</select>
-      </div>
-    </form>
+    <p>Access tokens are opaque and cannot be parsed by the client.</p>
 
     <p>This is the refresh-token we received:</p>
     <div class="framed verbatim"><p><%=refresh_token%></p></div>
-
-    <form action="/refresh-token" method="post">
-      <div class="row">
-	<button type="submit">Refresh token</button>
-      </div>
-    </form>
-
   </body>
 </html>
