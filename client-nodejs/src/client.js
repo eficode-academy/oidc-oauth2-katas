@@ -137,6 +137,8 @@ app.get('/callback', (req, res) => {
                     console.log('Refresh token', refresh_token);
                 }               
                 res.redirect(base_url);
+            } else {
+                res.render('error', ...token_data);
             }
         });
     });
