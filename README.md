@@ -1,6 +1,6 @@
 # OIDC and OAuth2 Katas
 
-Exercises for the [Eficode Academy](https://www.eficode.com/academy) *Securing APIs and Web Applications with OIDC and OAuth2* training.
+Exercises for the [Eficode Academy](https://www.eficode.com/academy) *OIDC and OAuth2 - Securing APIs and Web Applications* training.
 
 ## Exercise Overview
 
