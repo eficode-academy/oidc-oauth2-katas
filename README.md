@@ -1,6 +1,9 @@
 # OIDC and OAuth2 Katas
 
-Exercises for the [Eficode Academy](https://www.eficode.com/academy) *OIDC and OAuth2 - Securing APIs and Web Applications* training.
+Exercises for the [Eficode Academy](https://www.eficode.com/academy)
+*OIDC and OAuth2 - Securing APIs and Web Applications* training.
+
+These exercises assumes a pre-configured OIDC provider. See [Setting up KeyCloak](setting-up-keycloak.md) for how to configure KeyCloak to suit the exercises. **Note, for Eficode-run trainings KeyCloak is preconfigured and you do not need to configure KeyCloak**
 
 ## Exercise Overview
 
