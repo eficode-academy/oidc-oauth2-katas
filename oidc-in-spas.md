@@ -18,21 +18,25 @@ exercise [Protecting Resources and APIs](protecting-apis.md)
 - OIDC in SPAs
 - Backend-for-frontend pattern
 
+## Prerequisites
+
+This exercise require the following environment variables. **These are
+preconfigured in Eficode-run trainings**:
+
+```
+export SPA_CLIENT_ID=spa
+export SPA_CLIENT_SECRET=<xxx>
+```
+
 ## Exercise
 
 First, set some variables that help us build URLs:
 
 ```console
-export DOMAIN=user$USER_NUM.$TRAINING_NAME.eficode.academy
+export DOMAIN=student$USER_NUM.$TRAINING_NAME.eficode.academy
 export SPA_BASE_URL=https://spa.$DOMAIN
+echo $SPA_BASE_URL
 ```
-
-Next, create a new OIDC client `spa` for this exercise - use the same
-procedure as in previous exercises [Setting up
-KeyCloak](setting-up-keycloak.md), **with the exception, that you
-should set `Access Token Lifespan` to 1 minute**. This is a low
-lifespan, but we do this to demonstrate token refresh without too
-much waiting time.
 
 ### Deploy SPA
 
@@ -66,8 +70,6 @@ Next we will deploy the backend-for-frontend (BFF), which we call
 `login`. First create environment variables for our identity provider:
 
 ```console
-export SPA_CLIENT_ID=spa
-export SPA_CLIENT_SECRET=<xxx>
 export OIDC_ISSUER_URL=https://keycloak.$DOMAIN/auth/realms/myrealm
 ```
 

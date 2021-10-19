@@ -101,8 +101,8 @@ export CLIENT1_SECRET=<xxx>     # This is your client1 'credential'
 For convenience, set the following variables:
 
 ```console
-export CLIENT1_BASE_URL=https://client1.user$USER_NUM.$TRAINING_NAME.eficode.academy
-export OIDC_ISSUER_URL=https://keycloak.user$USER_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm
+export CLIENT1_BASE_URL=https://client1.student$USER_NUM.$TRAINING_NAME.eficode.academy
+export OIDC_ISSUER_URL=https://keycloak.student$USER_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm
 ```
 
 Note that instead of configuring `OIDC_AUTH_URL` and `OIDC_TOKEN_URL`
@@ -158,7 +158,7 @@ export ACCESS_TOKEN=<yyy>
 For convenience, set an environment variable that holds the API endpoint
 
 ```console
-export API_EP=https://api.user$USER_NUM.$TRAINING_NAME.eficode.academy
+export API_EP=https://api.student$USER_NUM.$TRAINING_NAME.eficode.academy
 ```
 
 Now we can access the API using the access token in an `Authorization`

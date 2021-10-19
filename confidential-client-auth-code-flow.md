@@ -58,21 +58,21 @@ then you can fetch the OIDC configuration with (assuming your realm was named `m
 ```console
 export USER_NUM=<X>             # Use your assigned user number
 export TRAINING_NAME=<xxx>      # Get this from your trainer
-curl -s https://keycloak.user$USER_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm/.well-known/openid-configuration | jq .
+curl -s https://keycloak.student$USER_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm/.well-known/openid-configuration | jq .
 ```
 
 Specifically, the authorization and token URLs can be found with:
 
 ```console
-curl -s https://keycloak.user$USER_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm/.well-known/openid-configuration | jq .authorization_endpoint
-curl -s https://keycloak.user$USER_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm/.well-known/openid-configuration | jq .token_endpoint
+curl -s https://keycloak.student$USER_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm/.well-known/openid-configuration | jq .authorization_endpoint
+curl -s https://keycloak.student$USER_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm/.well-known/openid-configuration | jq .token_endpoint
 ```
 
 Export the URLs as environment variables:
 
 ```console
-export OIDC_AUTH_URL=`curl -s https://keycloak.user$USER_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm/.well-known/openid-configuration | jq -r .authorization_endpoint`
-export OIDC_TOKEN_URL=`curl -s https://keycloak.user$USER_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm/.well-known/openid-configuration | jq -r .token_endpoint`
+export OIDC_AUTH_URL=`curl -s https://keycloak.student$USER_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm/.well-known/openid-configuration | jq -r .authorization_endpoint`
+export OIDC_TOKEN_URL=`curl -s https://keycloak.student$USER_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm/.well-known/openid-configuration | jq -r .token_endpoint`
 ```
 
 With the required settings stored as environment variables as
@@ -86,7 +86,7 @@ env | egrep 'OIDC|CLIENT[12]_' | sort
 We will deploy the server-based client using Kubernetes and the client will be accessible at the URL below.
 
 ```console
-export CLIENT1_BASE_URL=https://client1.user$USER_NUM.$TRAINING_NAME.eficode.academy
+export CLIENT1_BASE_URL=https://client1.student$USER_NUM.$TRAINING_NAME.eficode.academy
 ```
 
 The client can also run locally in which case the URL should be

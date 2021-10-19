@@ -35,7 +35,7 @@ export CLIENT1_SECRET=<xxx>     # This is your client1 'credential'
 From the values above, define the following environment variable:
 
 ```console
-export OIDC_ISSUER_URL=https://keycloak.user$USER_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm
+export OIDC_ISSUER_URL=https://keycloak.student$USER_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm
 ```
 
 Since OAuth2-proxy will interact with the identity-provider at
@@ -57,7 +57,7 @@ proxy) to be the Kubernetes-internal DNS name `object-store`. I.e. setup
 the to URLs as environment variables:
 
 ```console
-export OAUTH2_PROXY_EP=https://client1.user$USER_NUM.$TRAINING_NAME.eficode.academy
+export OAUTH2_PROXY_EP=https://client1.student$USER_NUM.$TRAINING_NAME.eficode.academy
 export OAUTH2_PROXY_UPSTREAM=http://object-store-v2:80
 ```
 
@@ -121,7 +121,7 @@ can access the link that trigger the CSRF attack.
 
 ```console
 export LEGIT_CLIENT_URL=$OAUTH2_PROXY_EP
-export HAZARD_URL=https://hazard.user$USER_NUM.$TRAINING_NAME.eficode.academy
+export HAZARD_URL=https://hazard.student$USER_NUM.$TRAINING_NAME.eficode.academy
 ```
 
 Finally, deploy the hazard service:

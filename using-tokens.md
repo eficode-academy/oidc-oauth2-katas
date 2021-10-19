@@ -36,8 +36,8 @@ export CLIENT1_SECRET=<xxx>     # This is your client1 'credential'
 For convenience, set the following variables:
 
 ```console
-export CLIENT1_BASE_URL=https://client1.user$USER_NUM.$TRAINING_NAME.eficode.academy
-export OIDC_ISSUER_URL=https://keycloak.user$USER_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm
+export CLIENT1_BASE_URL=https://client1.student$USER_NUM.$TRAINING_NAME.eficode.academy
+export OIDC_ISSUER_URL=https://keycloak.student$USER_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm
 ```
 
 Next, create a Kubernetes `ConfigMap` and `Secret` for client configuration:
@@ -75,7 +75,7 @@ export REFRESH_TOKEN=<zzz>
 Next, we use the OIDC discovery endpoint to find the URL where we can fetch userinfo:
 
 ```console
-export USERINFO_EP=`curl -s https://keycloak.user$USER_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm/.well-known/openid-configuration | jq -r .userinfo_endpoint`
+export USERINFO_EP=`curl -s https://keycloak.student$USER_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm/.well-known/openid-configuration | jq -r .userinfo_endpoint`
 ```
 
 Userinfo is a 'protected resource', i.e. we need to provide the access
@@ -132,7 +132,7 @@ three tokens we got through an 'introspection endpoint'. We find the
 introspection endpoint using OIDC discovery as follows:
 
 ```console
-export INTROSPECTION_EP=`curl -s https://keycloak.user$USER_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm/.well-known/openid-configuration | jq -r .introspection_endpoint`
+export INTROSPECTION_EP=`curl -s https://keycloak.student$USER_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm/.well-known/openid-configuration | jq -r .introspection_endpoint`
 ```
 
 Lets introspect our access and refresh tokens:
@@ -204,7 +204,7 @@ token endpoint. As from the previous exercise, store the identity
 provider token endpoint in an environment variable:
 
 ```console
-export OIDC_TOKEN_URL=`curl -s https://keycloak.user$USER_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm/.well-known/openid-configuration | jq -r .token_endpoint`
+export OIDC_TOKEN_URL=`curl -s https://keycloak.student$USER_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm/.well-known/openid-configuration | jq -r .token_endpoint`
 ```
 
 Next, issue a refresh request using `grant_type=refresh_token` and specifying the current refresh token:
@@ -316,7 +316,7 @@ provider provide an URL, which we can find from the OIDC
 configuration as `end_session_endpoint`:
 
 ```console
-export OIDC_END_SESSION_EP=`curl -s https://keycloak.user$USER_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm/.well-known/openid-configuration | jq -r .end_session_endpoint`
+export OIDC_END_SESSION_EP=`curl -s https://keycloak.student$USER_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm/.well-known/openid-configuration | jq -r .end_session_endpoint`
 ```
 
 Identity provider logout from the client is then achieved with an

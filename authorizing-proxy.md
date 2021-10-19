@@ -71,7 +71,7 @@ export CLIENT1_SECRET=<xxx>     # This is your client1 'credential'
 From the values above, define the following environment variable:
 
 ```console
-export OIDC_ISSUER_URL=https://keycloak.user$USER_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm
+export OIDC_ISSUER_URL=https://keycloak.student$USER_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm
 ```
 
 Since OAuth2-proxy will interact with the identity-provider at
@@ -93,7 +93,7 @@ behind OAuth2 proxy) to be the Kubernetes-internal DNS name
 `httpbin`. I.e. setup the two URLs as environment variables:
 
 ```console
-export OAUTH2_PROXY_EP=https://client1.user$USER_NUM.$TRAINING_NAME.eficode.academy
+export OAUTH2_PROXY_EP=https://client1.student$USER_NUM.$TRAINING_NAME.eficode.academy
 export OAUTH2_PROXY_UPSTREAM=http://httpbin:80
 ```
 
