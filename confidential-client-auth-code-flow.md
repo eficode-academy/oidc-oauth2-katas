@@ -16,31 +16,29 @@ situations.
 
 ## Prerequisites
 
-This exercise require an identity provider configured with one or more
-test users and a client configuration that allow our client to login
-users through the identity provider. See e.g. [Setting up
-KeyCloak](setting-up-keycloak.md) for how to configure KeyCloak for
-this exercise.
+This exercise use the following environment variables. They will
+already be configured for Eficode-run trainings:
 
-Specifically we will obtain and configure the following properties:
+```
+USER_NUM
+TRAINING_NAME
+CLIENT1_ID
+CLIENT1_SECRET
+```
 
-- A client ID
-- A client secret
-- An identity provider authorization URL (where to redirect user for authentication)
-- A get-token URL (where client can get tokens after user authentication)
-
-The two first you should know from your identity provider
-configuration (e.g. from setting up KeyCloak as described above). The
-two latter we will find below.
-
-## Exercise
-
-For convenience, export the client settings as environment variables:
+Use the following command to inspect your environment variables:
 
 ```console
-export CLIENT1_ID=client1
-export CLIENT1_SECRET=<xxx>     # This is your client1 'credential'
+env | egrep 'USER_NUM|TRAINING_NAME|^CLIENT[12]_|^SPA_' | sort
 ```
+
+Exercises assume you have changed to the katas folder:
+
+```console
+cd oidc-oauth2-katas
+```
+
+## Exercise
 
 The authorization and get-token URLs will be obtained from our
 authorization server using 'OIDC Discovery' which is a mechanism to
@@ -50,14 +48,12 @@ URLs.
 Assuming your KeyCloak instance is located at:
 
 ```
-https://keycloak.user<X>.<training-name>.eficode.academy
+https://keycloak.student<X>.<training-name>.eficode.academy
 ```
 
-then you can fetch the OIDC configuration with (assuming your realm was named `myrealm`):
+then you can fetch the OIDC configuration for the realm `myrealm` with:
 
 ```console
-export USER_NUM=<X>             # Use your assigned user number
-export TRAINING_NAME=<xxx>      # Get this from your trainer
 curl -s https://keycloak.student$USER_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm/.well-known/openid-configuration | jq .
 ```
 
@@ -87,11 +83,8 @@ We will deploy the server-based client using Kubernetes and the client will be a
 
 ```console
 export CLIENT1_BASE_URL=https://client1.student$USER_NUM.$TRAINING_NAME.eficode.academy
+echo $CLIENT1_BASE_URL
 ```
-
-The client can also run locally in which case the URL should be
-changed to e.g. `http://localhost:5000`. This is however, not part of
-this exercise.
 
 For the Kubernetes deployment, we make the above configuration
 available as a `ConfigMap` and `Secret`. Use the commands below to
@@ -110,7 +103,6 @@ kubectl create configmap client1 \
 With the configuration in place, we are ready to deploy the client. Use the following to deploy the client:
 
 ```console
-cd oidc-oauth2-katas
 kubectl apply -f kubernetes/client1.yaml
 ```
 
