@@ -16,7 +16,7 @@ console.log('UPSTREAM_URL', upstream_url);
 console.log('REDIS_URL', redis_url);
 console.log('CORS_ALLOW_ORIGIN', cors_allow_origin);
 
-process.on('SIGINT', () => {
+process.on('SIGTERM', () => {
   console.info("Interrupted")
   process.exit(0)
 })
