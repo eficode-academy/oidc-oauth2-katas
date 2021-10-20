@@ -16,48 +16,33 @@ ERRORS=0
 
 source $SELF_PATH/markdown-blocks.sh
 
-function common-setup-env {
-    # These are a bit random - needs real idp values
-    export CLIENT1_ID=client1
-    export CLIENT2_ID=client2
-    export SPA_CLIENT_ID=spa
-    if [ -z "$CLIENT1_SECRET" ]; then
-        export CLIENT1_SECRET=123456789
-    fi
-    if [ -z "$CLIENT2_SECRET" ]; then
-        export CLIENT2_SECRET=123456789
-    fi
-    if [ -z "$SPA_CLIENT_SECRET" ]; then
-        export SPA_CLIENT_SECRET=123456789
-    fi
-    export OIDC_ISSUER_URL=https://keycloak.user$USER_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm
-    export OIDC_AUTH_URL=`curl -s https://keycloak.user$USER_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm/.well-known/openid-configuration | jq -r .authorization_endpoint`
-    export OIDC_TOKEN_URL=`curl -s https://keycloak.user$USER_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm/.well-known/openid-configuration | jq -r .token_endpoint`
+function exercise-authorization-code-flow-setup-env {
+    authorization-code-flow.md-prerequisites-block1
+    authorization-code-flow.md-exercise-block3
+    authorization-code-flow.md-exercise-block5
 }
 
-function exercise-confidential-client-auth-code-flow-setup-env {
-    common-setup-env
-    confidential-client-auth-code-flow.md-exercise-block4
-    confidential-client-auth-code-flow.md-exercise-block6
-}
-
-function exercise-confidential-client-auth-code-flow-deploy {
-    exercise-confidential-client-auth-code-flow-setup-env
-
-    confidential-client-auth-code-flow.md-exercise-block7
-    confidential-client-auth-code-flow.md-exercise-block8
+function exercise-authorization-code-flow-deploy {
+    authorization-code-flow.md-prerequisites-block1
+    authorization-code-flow.md-exercise-block1
+    authorization-code-flow.md-exercise-block2
+    authorization-code-flow.md-exercise-block3
+    authorization-code-flow.md-exercise-block4
+    authorization-code-flow.md-exercise-block5
+    authorization-code-flow.md-exercise-block6
+    authorization-code-flow.md-exercise-block7
 
     kubectl wait --for=condition=ready pod -l app=client1 --timeout=60s
     sleep 10
 }
 
-function exercise-confidential-client-auth-code-flow-undeploy {
-    confidential-client-auth-code-flow.md-clean-up-block1
+function exercise-authorization-code-flow-undeploy {
+    authorization-code-flow.md-clean-up-block1
     kubectl wait --for=delete pod -l app=client1 --timeout=120s || true
 }
 
-function exercise-confidential-client-auth-code-flow-test {
-    exercise-confidential-client-auth-code-flow-setup-env
+function exercise-authorization-code-flow-test {
+    exercise-authorization-code-flow-setup-env
     HTTP_STATUS=$(curl -s $CLIENT1_BASE_URL -o /dev/null -w '%{http_code}')
     if [ "$HTTP_STATUS" != '200' ]; then
         echo "*** Error, got HTTP status $HTTP_STATUS"
@@ -68,34 +53,36 @@ function exercise-confidential-client-auth-code-flow-test {
 }
 
 
-# This exercise extends 'confidential-client-auth-code-flow'
-function exercise-confidential-client-auth-code-flow2-setup-env {
-    common-setup-env
-    exercise-confidential-client-auth-code-flow-setup-env
-    confidential-client-auth-code-flow2.md-single-sign-on-sso-block2
-    confidential-client-auth-code-flow2.md-single-sign-on-sso-block3
+# This exercise extends 'authorization-code-flow'
+function exercise-authorization-code-flow2-setup-env {
+    exercise-authorization-code-flow-setup-env
+    authorization-code-flow2.md-single-sign-on-sso-block1
 }
 
-function exercise-confidential-client-auth-code-flow2-deploy {
-    exercise-confidential-client-auth-code-flow2-setup-env
+function exercise-authorization-code-flow2-deploy {
+    exercise-authorization-code-flow2-setup-env
 
-    exercise-confidential-client-auth-code-flow-deploy
-    confidential-client-auth-code-flow2.md-single-sign-on-sso-block4
-    confidential-client-auth-code-flow2.md-single-sign-on-sso-block5
+    exercise-authorization-code-flow-deploy
+    authorization-code-flow2.md-prerequisites-block1
+    authorization-code-flow2.md-logout-block1
+    #authorization-code-flow2.md-identity-provider-session-cookies-block1
+    authorization-code-flow2.md-single-sign-on-sso-block1
+    authorization-code-flow2.md-single-sign-on-sso-block2
+    authorization-code-flow2.md-single-sign-on-sso-block3
 
     kubectl wait --for=condition=ready pod -l app=client2 --timeout=60s
     sleep 10
 }
 
-function exercise-confidential-client-auth-code-flow2-undeploy {
-    confidential-client-auth-code-flow2.md-clean-up-block1
+function exercise-authorization-code-flow2-undeploy {
+    authorization-code-flow2.md-clean-up-block1
     kubectl wait --for=delete pod -l app=client2 --timeout=120s || true
 }
 
-function exercise-confidential-client-auth-code-flow2-test {
-    exercise-confidential-client-auth-code-flow2-setup-env
+function exercise-authorization-code-flow2-test {
+    exercise-authorization-code-flow2-setup-env
 
-    exercise-confidential-client-auth-code-flow-test
+    exercise-authorization-code-flow-test
 
     HTTP_STATUS=$(curl -s $CLIENT2_BASE_URL -o /dev/null -w '%{http_code}')
     if [ "$HTTP_STATUS" != '200' ]; then
@@ -108,15 +95,20 @@ function exercise-confidential-client-auth-code-flow2-test {
 
 
 function exercise-using-tokens-setup-env {
-    common-setup-env
-    using-tokens.md-deploy-client-block2
+    using-tokens.md-deploy-client-block1
+    using-tokens.md-using-tokens-with-curl-block2
+    using-tokens.md-introspecting-tokens-block1
+    using-tokens.md-refreshing-tokens-block1
+    using-tokens.md-client-side-logout-block1
 }
 
 function exercise-using-tokens-deploy {
     exercise-using-tokens-setup-env
 
+    using-tokens.md-prerequisites-block1
+    using-tokens.md-deploy-client-block1
+    using-tokens.md-deploy-client-block2
     using-tokens.md-deploy-client-block3
-    using-tokens.md-deploy-client-block4
 
     kubectl wait --for=condition=ready pod -l app=client1 --timeout=60s
     sleep 10
@@ -129,6 +121,7 @@ function exercise-using-tokens-undeploy {
 
 function exercise-using-tokens-test {
     exercise-using-tokens-setup-env
+
     HTTP_STATUS=$(curl -s $CLIENT1_BASE_URL -o /dev/null -w '%{http_code}')
     if [ "$HTTP_STATUS" != '200' ]; then
         echo "*** Error, got HTTP status $HTTP_STATUS"
@@ -136,11 +129,17 @@ function exercise-using-tokens-test {
     else
         let SUCCESSES+=1
     fi
+
+    # Commands that setup actions which we cannot test without access to tokens.
+    # However, run the commands that we can execute...
+    using-tokens.md-using-tokens-with-curl-block2
+    using-tokens.md-introspecting-tokens-block1
+    using-tokens.md-refreshing-tokens-block1
+    using-tokens.md-client-side-logout-block1
 }
 
 
 function exercise-protecting-apis-setup-env {
-    common-setup-env
     protecting-apis.md-exercise-block2
     protecting-apis.md-accessing-the-api-block2
 }
@@ -178,7 +177,6 @@ function exercise-protecting-apis-test {
 
 
 function exercise-authorizing-proxy-setup-env {
-    common-setup-env
     authorizing-proxy.md-exercise-block3
     authorizing-proxy.md-exercise-block5
 }
@@ -217,8 +215,6 @@ function exercise-authorizing-proxy-test {
 
 
 function exercise-csrf-attacks-setup-env {
-    common-setup-env
-
     csrf-attacks.md-exercise-block3
     csrf-attacks.md-exercise-block5
 }
@@ -283,7 +279,6 @@ function exercise-csrf-attacks-test {
 
 
 function exercise-session-storage-setup-env {
-    common-setup-env
     session-storage.md-exercise-block3
 }
 
@@ -324,19 +319,20 @@ function exercise-session-storage-test {
 
 
 function exercise-oidc-in-spas-setup-env {
-    common-setup-env
     oidc-in-spas.md-exercise-block1
 }
 
 function exercise-oidc-in-spas-deploy {
     exercise-oidc-in-spas-setup-env
 
-    oidc-in-spas.md-deploy-spa-block1
-    oidc-in-spas.md-deploy-bff-block2
-    oidc-in-spas.md-deploy-bff-block3
+    oidc-in-spas.md-prerequisites-block1
+    oidc-in-spas.md-exercise-block1
+    oidc-in-spas.md-deploy-spa-cdn-block1
+    oidc-in-spas.md-deploy-login-bff-block1
+    oidc-in-spas.md-deploy-login-bff-block2
+    oidc-in-spas.md-deploy-api-gateway-block1
     oidc-in-spas.md-deploy-api-block1
     oidc-in-spas.md-deploy-api-block2
-    oidc-in-spas.md-deploy-api-gateway-block1
 
     kubectl wait --for=condition=ready pod -l app=spa-cdn --timeout=60s
     kubectl wait --for=condition=ready pod -l app=spa-login --timeout=60s
@@ -369,15 +365,15 @@ function exercise-oidc-in-spas-test {
 
 function test-all {
 
-    echo "### exercise-confidential-client-auth-code-flow"
-    exercise-confidential-client-auth-code-flow-deploy
-    exercise-confidential-client-auth-code-flow-test
-    exercise-confidential-client-auth-code-flow-undeploy
+    echo "### exercise-authorization-code-flow"
+    exercise-authorization-code-flow-deploy
+    exercise-authorization-code-flow-test
+    exercise-authorization-code-flow-undeploy
 
-    echo "### exercise-confidential-client-auth-code-flow2"
-    exercise-confidential-client-auth-code-flow2-deploy
-    exercise-confidential-client-auth-code-flow2-test
-    exercise-confidential-client-auth-code-flow2-undeploy
+    echo "### exercise-authorization-code-flow2"
+    exercise-authorization-code-flow2-deploy
+    exercise-authorization-code-flow2-test
+    exercise-authorization-code-flow2-undeploy
 
     echo "### exercise-using-tokens"
     exercise-using-tokens-deploy
@@ -414,23 +410,23 @@ while [[ $# -gt 0 ]]
 do
     key="$1"
     case $key in
-        exercise-confidential-client-auth-code-flow-deploy)
-            exercise-confidential-client-auth-code-flow-deploy
+        exercise-authorization-code-flow-deploy)
+            exercise-authorization-code-flow-deploy
         ;;
-        exercise-confidential-client-auth-code-flow-undeploy)
-            exercise-confidential-client-auth-code-flow-undeploy
+        exercise-authorization-code-flow-undeploy)
+            exercise-authorization-code-flow-undeploy
         ;;
-        exercise-confidential-client-auth-code-flow-test)
-            exercise-confidential-client-auth-code-flow-test
+        exercise-authorization-code-flow-test)
+            exercise-authorization-code-flow-test
         ;;
-        exercise-confidential-client-auth-code-flow2-deploy)
-            exercise-confidential-client-auth-code-flow2-deploy
+        exercise-authorization-code-flow2-deploy)
+            exercise-authorization-code-flow2-deploy
         ;;
-        exercise-confidential-client-auth-code-flow2-undeploy)
-            exercise-confidential-client-auth-code-flow2-undeploy
+        exercise-authorization-code-flow2-undeploy)
+            exercise-authorization-code-flow2-undeploy
         ;;
-        exercise-confidential-client-auth-code-flow2-test)
-            exercise-confidential-client-auth-code-flow2-test
+        exercise-authorization-code-flow2-test)
+            exercise-authorization-code-flow2-test
         ;;
         exercise-using-tokens-deploy)
 	    exercise-using-tokens-deploy
