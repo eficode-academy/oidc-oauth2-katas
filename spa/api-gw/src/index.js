@@ -4,6 +4,7 @@ const { createProxyMiddleware } = require('http-proxy-middleware');
 const cors = require('cors');
 const redis = require('redis')
 const logger = require('morgan');
+const process = require('process');
 
 const port = process.env.CLIENT_PORT || 5020;
 const session_secret = process.env.SESSION_SECRET;
@@ -14,6 +15,11 @@ const upstream_url = process.env.UPSTREAM_URL;
 console.log('UPSTREAM_URL', upstream_url);
 console.log('REDIS_URL', redis_url);
 console.log('CORS_ALLOW_ORIGIN', cors_allow_origin);
+
+process.on('SIGINT', () => {
+  console.info("Interrupted")
+  process.exit(0)
+})
 
 const app = express();
 app.use(logger('combined'));

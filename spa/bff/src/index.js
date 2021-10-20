@@ -6,6 +6,7 @@ const randomstring = require("randomstring");
 const urlParse = require("url-parse");
 const logger = require('morgan');
 const { Issuer, generators, TokenSet } = require('openid-client');
+const process = require('process');
 
 const port = process.env.CLIENT_PORT || 5010;
 const redirect_url = process.env.REDIRECT_URL;
@@ -24,6 +25,11 @@ console.log('OIDC_ISSUER_URL', oidc_issuer_url);
 console.log('OIDC_SCOPE', oidc_scope);
 console.log('REDIS_URL', redis_url);
 console.log('CORS_ALLOW_ORIGIN', cors_allow_origin);
+
+process.on('SIGINT', () => {
+  console.info("Interrupted")
+  process.exit(0)
+})
 
 const app = express();
 app.use(logger('combined'));
