@@ -15,7 +15,7 @@ spec:
         app: spa-cdn
     spec:
       containers:
-      - image: praqma/oidc-oauth2-katas-client:sha-fc6f68e
+      - image: praqma/oidc-oauth2-katas-client:sha-3ecef8f
         name: client
         command: ["node", "src/index.js"]
         workingDir: /apps/cdn
