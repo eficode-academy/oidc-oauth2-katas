@@ -17,8 +17,7 @@ spec:
       containers:
       - image: praqma/oidc-oauth2-katas-client:sha-fc6f68e
         name: client
-        command: ["npm", "run", "watch"]
-        #command: ["node", "src/client.js"]
+        command: ["node", "src/client.js"]
         env:
         - name: NODE_ENV
           value: "development"
