@@ -8,6 +8,7 @@ const bodyParser = require('body-parser');
 const logger = require('morgan');
 const { Issuer, Strategy } = require('openid-client');
 const randomstring = require('randomstring');
+const process = require('process');
 
 const client_title = process.env.CLIENT_TITLE || 'Confidential Client';
 const client_stylefile = process.env.CLIENT_STYLEFILE || 'style.css';
@@ -25,6 +26,11 @@ console.log('CLIENT_ID', client_id);
 console.log('CLIENT_SECRET', client_secret);
 console.log('OIDC_ISSUER_URL', oidc_issuer_url);
 console.log('REDIS_URL', redis_url);
+
+process.on('SIGTERM', () => {
+  console.info("Interrupted")
+  process.exit(0)
+})
 
 const app = express();
 app.set('views', path.join(__dirname, 'views'));
@@ -152,15 +158,6 @@ Issuer.discover(oidc_issuer_url)
                                  access_token:  req.user.tokenSet.access_token,
                                  refresh_token:  req.user.tokenSet.refresh_token
                                 });
-            // setInterval(function () {
-            //  console.log('Check id token is still valid using introspection...');
-            //  client.introspect(req.user.tokenSet.id_token).then(function (token_status) {
-            //      console.log('Token introspect result', token_status);
-            //      if ( ! token_status.active ) {
-            //          console.log('Id token no longer active');
-            //      }
-            //  })
-            // }, 5000);
         });
 
         // Error handler

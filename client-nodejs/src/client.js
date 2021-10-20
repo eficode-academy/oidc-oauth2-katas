@@ -8,11 +8,17 @@ const randomstring = require("randomstring");
 const querystring = require("querystring");
 const https = require('https');
 const jwt_decode = require('jwt-decode');
+const process = require('process');
 
 const client_title = process.env.CLIENT_TITLE || 'Confidential Client';
 const client_stylefile = process.env.CLIENT_STYLEFILE || 'style.css';
 const port = process.env.CLIENT_PORT || 5000;
 const base_url = process.env.CLIENT_BASE_URL || 'http://localhost:' + port
+
+process.on('SIGTERM', () => {
+  console.info("Interrupted")
+  process.exit(0)
+})
 
 const app = express();
 app.set('views', path.join(__dirname, 'views'));
