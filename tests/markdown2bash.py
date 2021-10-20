@@ -16,6 +16,7 @@ for markdown in sys.argv[1:]:
                 block_num = 1
             elif line == '```console':
                 print('function {}-{}-block{} {{'.format(markdown, header, block_num))
+                print('    echo ">>> Entering {}-{}-block{}"'.format(markdown, header, block_num))
                 in_block = True
             elif in_block:
                 if line == '```':
