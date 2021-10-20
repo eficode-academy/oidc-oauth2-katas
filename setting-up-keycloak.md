@@ -30,8 +30,8 @@ Generally, this guide will configure the following in Keycloak:
 - A confidential client named `spa` with root URL `https://spa.student<X>.<training-name>.eficode.academy`.
 
 Exercises assume client IDs and secrets stored in environment
-variables, e.g. (where `...` indicate secrets available when you have
-created clients below):
+variables as follows (where `...` indicate secrets available when you
+have created clients below):
 
 ```
 export CLIENT1_ID=client1
