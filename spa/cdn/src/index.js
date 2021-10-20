@@ -1,6 +1,7 @@
 const express = require('express');
 const serveStatic = require('serve-static');
 const logger = require('morgan');
+const process = require('process');
 
 const port = process.env.CLIENT_PORT || 5000;
 const dist = process.env.STATIC_FILES_PATH;
@@ -9,6 +10,11 @@ const csp_script_sources = process.env.CSP_SCRIPT_SOURCES || null;
 
 console.log('CSP_CONNECT_SOURCES', csp_connect_sources);
 console.log('CSP_SCRIPT_SOURCES', csp_script_sources);
+
+process.on('SIGTERM', () => {
+  console.info("Interrupted")
+  process.exit(0)
+})
 
 const app = express();
 app.use(logger('combined'));
