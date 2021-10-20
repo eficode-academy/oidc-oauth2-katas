@@ -4,7 +4,7 @@ This exercise will demonstrate how to implement OIDC in browser-based
 applications, aka. single-page-applications (SPAs).  OIDC will be
 implemented using authorization code flow with the
 backend-for-frontend (BFF) pattern. This means, that for improved
-security, the OIDc functionality is handled server-side in close
+security, the OIDC functionality is handled server-side in close
 collaboration with the SPA.
 
 The architecture is illustrated below. The API (white box in lower
@@ -28,17 +28,34 @@ export SPA_CLIENT_ID=spa
 export SPA_CLIENT_SECRET=<xxx>
 ```
 
+Use the following command to inspect your environment variables:
+
+```console
+env | egrep 'STUDENT_NUM|TRAINING_NAME|^CLIENT[12]_|^SPA_|^OIDC_' | sort
+```
+
+Exercises assume you have changed to the katas folder:
+
+```console
+cd oidc-oauth2-katas
+```
+
 ## Exercise
+
+In the following, we will deploy the four components that make-up the
+SPA - the four white server-side boxes in the figure above - top to
+bottom: 'CDN', 'Login BFF', 'API gateway BFF' and 'API'.
 
 First, set some variables that help us build URLs:
 
 ```console
-export DOMAIN=student$USER_NUM.$TRAINING_NAME.eficode.academy
+export DOMAIN=student$STUDENT_NUM.$TRAINING_NAME.eficode.academy
+export OIDC_ISSUER_URL=https://keycloak.$DOMAIN/auth/realms/myrealm
 export SPA_BASE_URL=https://spa.$DOMAIN
 echo $SPA_BASE_URL
 ```
 
-### Deploy SPA
+### Deploy SPA CDN
 
 First we deploy a simple server that merely servers the static files
 of the SPA. We call this `spa-cdn`. This server will send a
@@ -64,18 +81,13 @@ functional since we are still missing some components.
 
 > ![SPA login screen](images/spa-login.png)
 
-### Deploy BFF
+### Deploy Login BFF
 
-Next we will deploy the backend-for-frontend (BFF), which we call
-`login`. First create environment variables for our identity provider:
-
-```console
-export OIDC_ISSUER_URL=https://keycloak.$DOMAIN/auth/realms/myrealm
-```
-
-and create a `Secret` and `ConfigMap` with this information. Note that
-we use the SPA base URL as the redirection URL, i.e. where we return
-after having completed login at the identity provider:
+Next we will deploy the login backend-for-frontend (BFF), which we
+call `login`. Create a `Secret` and `ConfigMap` with configuration
+information. Note that we use the SPA base URL as the redirection URL,
+i.e. where we return after having completed login at the identity
+provider:
 
 ```console
 kubectl create secret generic spa-client \
@@ -90,6 +102,18 @@ Finally, deploy the `login` component:
 
 ```console
 kubectl apply -f kubernetes/spa-login.yaml
+```
+
+### Deploy API Gateway
+
+The SPA cannot access the API yet, since it needs a component to
+exchange the session cookie for an access token. The API gateway
+component does that.
+
+Deploy the API gateway with:
+
+```console
+kubectl apply -f kubernetes/spa-api-gw.yaml
 ```
 
 ### Deploy API
@@ -114,18 +138,6 @@ and deploy the API:
 kubectl apply -f kubernetes/protected-api.yaml
 ```
 
-### Deploy API Gateway
-
-The SPA cannot access the API yet, since it needs a component to
-exchange the session cookie for an access token. The API gateway
-component does that.
-
-Deploy the API gateway with:
-
-```console
-kubectl apply -f kubernetes/spa-api-gw.yaml
-```
-
 All components of the SPA are now deployed.
 
 ## Login Through Backend-for-Frontend
@@ -136,8 +148,9 @@ To monitor an OIDC login with the SPA, monitor the BFF logs with the following c
 kubectl logs -f --tail=-1 -l app=spa-login -c client
 ```
 
-Second, right-click in your browser and select 'Inspect' in the menu
-and second 'Console' to watch debug output from the SPA:
+Also, go to the browser tab with the SPA and right-click and select
+'Inspect' in the menu and second 'Console' to watch debug output from
+the SPA:
 
 > ![SPA Console](images/spa-console-anno.png)
 
@@ -149,17 +162,18 @@ The four 'login-related' buttons are bound to BFF operations as follows:
 - `Refresh Tokens` - BFF path `/login/refresh` - the BFF will initiate token refresh from the OIDC provider
 
 Finally, the SPA will *on all pageloads* call the BFF path
-`/pageload`. This is necessary to forward the authorization code flow
-`code` back to the BFF such that it can complete an authorization code
-flow login.
+`/login/pageload`. This is necessary to forward the authorization code
+flow `code` back to the BFF such that it can complete an authorization
+code flow login. Obviously, the SPA could be optimized to only call
+this on URLs that potentially completes an authorization code flow.
 
 Inspect the SPA Javascript
 [app.js](spa/spa-app-vanilla-js/dist/js/app.js) and observe e.g. how
 the `doLogin` button is bound to the `doBFFLogin` Javascript function
-on page load and also how the SPA calls `doBFFPageLoad()` with the
-full page URL:
+(at the end of the source file) on page load and also how the SPA
+calls `doBFFPageLoad()` with the full page URL:
 
-```
+```nodejs
 window.addEventListener('load', () => {
     ...
     $('#doLogin').click(doBFFLogin);
@@ -170,7 +184,7 @@ window.addEventListener('load', () => {
 
 <details>
 <summary>:bulb: The SPA links HTML buttons with code explicitly in Javascript code instead of embedding it in the HTML. Why could that be?</summary>
-This is because the Content-Security-Policy did not allow in-line Javascript in HTML code. This is to protect against cross-site injection attacks.
+This is because the Content-Security-Policy set by the CDN did not allow in-line Javascript in HTML code. This is to protect against cross-site injection attacks.
 </details>
 
 When clicking the `Login` button, the SPA calls the `doBFFLogin()`
@@ -185,7 +199,7 @@ Spend a few minutes looking through the interface to the BFF in the
 The SPA use a network function `doBFFRequest()` to perform the HTTP
 `POST` operation:
 
-```
+```nodejs
 const doBFFLogin = async () => {
     data = await doBFFRequest('POST', '/start', null);
     location.href = data['authRedirUrl']
@@ -195,22 +209,25 @@ const doBFFLogin = async () => {
 This is very similar to an ordinary server-side OIDC application, with
 the exception, that the server side application would return an HTTP
 303 redirect message instead of relying on a browser side application
-doing the redirect. For reference, compare this with the `/login`
-operation in the very first server-side client we did in [Confidential
-Client with Authorization Code Flow - Part
-1](confidential-client-auth-code-flow.md) to see the similarities.
+doing the redirect.
 
 Next, click the `Login` button.
 
-In the logs from the BFF, you will see, that it returns a redirect URL very similar to what we have seen before:
+In the logs from the Login BFF, you will see, that it returns a
+redirect URL very similar to what we have seen before:
 
 ```
 Return authRedirUrl: https://keycloak.user ... client_id=spa&scope=openid%20profile&response_type=code ...
 ```
 
-Also, in the SPA console you will see, that the SPA calls-back to the
-BFF with the authorization code flow `code` (you may have to unfold
-the console log message to see the full details):
+The SPA browser window will redirect to KeyCloak for user login, and
+subsequently return back to the redirection URL specified in the
+`authRedirUrl`.
+
+When the SPA has reloaded after login, the SPA console output will
+show, that the SPA calls-back to the Login BFF with the authorization
+code flow `code` (you may have to unfold the console log message to
+see the full details):
 
 ```
 doRequest POST /login/pageload  {pageUrl: "https://spa.user2.mvl.eficode.academy/?state=xxxxx&session_state=yyyyy&code=xxxxx"}
@@ -231,11 +248,10 @@ of two things will now happen:
 1. You receive userinfo data and the SPA will show the details. You
 may recognize this as ID token claims.
 
-2. Your access token has expired (remember, that we set the access
-token lifespan to 1 minute when we configured the SPA OIDC
-client). The UserInfo area will show `**ERROR** (tokens
-expired?)`. Use the `Refresh Tokens` button to initiate token refresh
-through the BFF.
+2. Your access token has expired (the SPA client is configured with an
+access token lifespan of 1 minute). The UserInfo area will show
+`**ERROR** (tokens expired?)`. Use the `Refresh Tokens` button to
+initiate token refresh through the BFF.
 
 If your tokens where not expired, its worth spending a minute to let
 them expire and try the refresh procedure. *A full-fledged SPA would
@@ -270,9 +286,17 @@ Watch particularly for the HTTP status codes, e.g. the following show a success 
 GET /objects HTTP/1.1" 200 ...
 ```
 
+Note also, that since the object store/API validates the access token provided and since the access token lifespan is configured to 1 minute, errors related to access token expiry may be experienced and observed in the object store/API logs:
+
+```
+...  TokenExpiredError: jwt expired
+...  POST /object HTTP/1.1" 401 ...
+```
+
+Use the `Refresh Tokens` button to refresh the access token.
+
 Experiment with listing and creating objects in both logged-in,
 logged-out and tokens-expired situations.
-
 
 ### Clean up
 

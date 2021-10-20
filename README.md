@@ -7,8 +7,8 @@ These exercises assumes a pre-configured OIDC provider. See [Setting up KeyCloak
 
 ## Exercise Overview
 
-- [Confidential Client with Authorization Code Flow - Part 1](confidential-client-auth-code-flow.md)
-- [Confidential Client with Authorization Code Flow - Part 2](confidential-client-auth-code-flow2.md)
+- [Authorization Code Flow - Part 1](authorization-code-flow.md)
+- [Authorization Code Flow - Part 2](authorization-code-flow2.md)
 - [Using Tokens](using-tokens.md)
 - [Protecting Resources and APIs](protecting-apis.md)
 - [Using Authorizing Proxies](authorizing-proxy.md)

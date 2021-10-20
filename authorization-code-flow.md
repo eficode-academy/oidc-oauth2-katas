@@ -1,9 +1,9 @@
-# Confidential Client with Authorization Code Flow - Part 1
+# Authorization Code Flow - Part 1
 
 ## Learning Goals
 
-- Hands-on with the HTTP requests and responses of the authorization code flow
-- Configure a confidential client to work with an OIDC identity provider
+- high-level hands-on with the authorization code flow
+- Configure a client to work with an OIDC identity provider
 - Using the OIDC discovery endpoint
 - Decoding ID-tokens/JWTs
 
@@ -20,7 +20,7 @@ This exercise use the following environment variables. They will
 already be configured for Eficode-run trainings:
 
 ```
-USER_NUM
+STUDENT_NUM
 TRAINING_NAME
 CLIENT1_ID
 CLIENT1_SECRET
@@ -29,7 +29,7 @@ CLIENT1_SECRET
 Use the following command to inspect your environment variables:
 
 ```console
-env | egrep 'USER_NUM|TRAINING_NAME|^CLIENT[12]_|^SPA_' | sort
+env | egrep 'STUDENT_NUM|TRAINING_NAME|^CLIENT[12]_|^SPA_|^OIDC_' | sort
 ```
 
 Exercises assume you have changed to the katas folder:
@@ -54,21 +54,21 @@ https://keycloak.student<X>.<training-name>.eficode.academy
 then you can fetch the OIDC configuration for the realm `myrealm` with:
 
 ```console
-curl -s https://keycloak.student$USER_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm/.well-known/openid-configuration | jq .
+curl -s https://keycloak.student$STUDENT_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm/.well-known/openid-configuration | jq .
 ```
 
 Specifically, the authorization and token URLs can be found with:
 
 ```console
-curl -s https://keycloak.student$USER_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm/.well-known/openid-configuration | jq .authorization_endpoint
-curl -s https://keycloak.student$USER_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm/.well-known/openid-configuration | jq .token_endpoint
+curl -s https://keycloak.student$STUDENT_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm/.well-known/openid-configuration | jq .authorization_endpoint
+curl -s https://keycloak.student$STUDENT_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm/.well-known/openid-configuration | jq .token_endpoint
 ```
 
 Export the URLs as environment variables:
 
 ```console
-export OIDC_AUTH_URL=`curl -s https://keycloak.student$USER_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm/.well-known/openid-configuration | jq -r .authorization_endpoint`
-export OIDC_TOKEN_URL=`curl -s https://keycloak.student$USER_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm/.well-known/openid-configuration | jq -r .token_endpoint`
+export OIDC_AUTH_URL=`curl -s https://keycloak.student$STUDENT_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm/.well-known/openid-configuration | jq -r .authorization_endpoint`
+export OIDC_TOKEN_URL=`curl -s https://keycloak.student$STUDENT_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm/.well-known/openid-configuration | jq -r .token_endpoint`
 ```
 
 With the required settings stored as environment variables as
@@ -82,7 +82,7 @@ env | egrep 'OIDC|CLIENT[12]_' | sort
 We will deploy the server-based client using Kubernetes and the client will be accessible at the URL below.
 
 ```console
-export CLIENT1_BASE_URL=https://client1.student$USER_NUM.$TRAINING_NAME.eficode.academy
+export CLIENT1_BASE_URL=https://client1.student$STUDENT_NUM.$TRAINING_NAME.eficode.academy
 echo $CLIENT1_BASE_URL
 ```
 
@@ -150,7 +150,9 @@ echo $IDTOKEN | cut -d. -f2 | base64 -d | jq .
 
 > If you get an `base64: invalid input` warning from this command then its most likely because the base64 encoded data is not a multiple of 4 characters. I.e. the output from `cut` needs to be padded with a number of `=` characters. This warning is however, safe to ignore.
 
-This completes part-1 of the confidential client authorization code flow. In [Part-2](confidential-client-auth-code-flow2.md) we will look more into the details of the token exchange.
+This completes part-1 of the confidential client authorization code
+flow. In [Part-2](authorization-code-flow2.md) we will look more into
+the details of the token exchange.
 
 ### Clean up
 

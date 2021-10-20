@@ -1,4 +1,4 @@
-# Confidential Client with Authorization Code Flow - Part 2
+# Authorization Code Flow - Part 2
 
 ## Learning Goals
 
@@ -10,15 +10,47 @@
 ## Introduction
 
 This exercise extend on
-[part-1](confidential-client-auth-code-flow.md) and we investigate the
+[part-1](authorization-code-flow.md) and we investigate the
 authorization code flow in more details. Also, we look into the
 security sessions that are involved. You should have `client1` running
 from part-1, if not, visit
-[part-1](confidential-client-auth-code-flow.md) and deploy `client1`.
+[part-1](authorization-code-flow.md) and deploy `client1`.
 
 For reference, the authorization code flow is illustrated below:
 
 > ![Authorization Code Flow](images/auth-code-flow.png)
+
+## Prerequisites
+
+This exercise use the following environment variables. They will
+already be configured for Eficode-run trainings:
+
+```
+STUDENT_NUM
+TRAINING_NAME
+CLIENT2_ID
+CLIENT2_SECRET
+```
+
+In addition, the following environment variables should already be set
+from [part-1](authorization-code-flow.md):
+
+```
+OIDC_AUTH_URL
+OIDC_TOKEN_URL
+```
+
+Use the following command to inspect your environment variables:
+
+```console
+env | egrep 'STUDENT_NUM|TRAINING_NAME|^CLIENT[12]_|^SPA_|^OIDC_' | sort
+```
+
+Exercises assume you have changed to the katas folder:
+
+```console
+cd oidc-oauth2-katas
+```
 
 ## Exercise
 
@@ -217,25 +249,10 @@ provider and not between client(s) and identity provider, the setup
 supports single-sign-on. To demonstrate this, we deploy a second
 client similar to `client1`.
 
-Create `client2` information in environment variables similar to what
-we did for `client1` (**using the secret/credential for client2, not the
-one from client1**):
+Create the following environment variable with the client base URL:
 
 ```console
-export CLIENT2_ID=client2
-export CLIENT2_SECRET=<xxx>     # This is your client2 'credential'
-```
-
-And create an environment variable with the client base URL:
-
-```console
-export CLIENT2_BASE_URL=https://client2.student$USER_NUM.$TRAINING_NAME.eficode.academy
-```
-
-Verify, that your settings looks good - particularly the two secrets should be different:
-
-```console
-env | egrep 'OIDC|CLIENT[12]_' | sort
+export CLIENT2_BASE_URL=https://client2.student$STUDENT_NUM.$TRAINING_NAME.eficode.academy
 ```
 
 Create a Kubernetes `ConfigMap` and `Secret` with this information:
