@@ -11,8 +11,7 @@
 
 ## Introduction
 
-Exercise [Confidential Client with Authorization Code
-Flow](confidential-client-auth-code-flow.md) demonstrated how to
+Exercise [Authorization Code Flow - Part 1](authorization-code-flow.md) demonstrated how to
 obtain tokens using the authorization code flow.
 
 With the access token, the client can access protected resources,
@@ -20,24 +19,41 @@ however, the tokens can also easily be used 'manually' from the
 command-line. This exercise will demonstrate how to use tokens from
 the terminal with `curl`.
 
+## Prerequisites
+
+This exercise use the following environment variables. **They will
+already be configured for Eficode-run trainings**:
+
+```
+STUDENT_NUM
+TRAINING_NAME
+CLIENT1_ID
+CLIENT1_SECRET
+```
+
+Use the following command to inspect your environment variables:
+
+```console
+env | egrep 'STUDENT_NUM|TRAINING_NAME|^CLIENT[12]_|^SPA_|^OIDC_' | sort
+```
+
+Exercises assume you have changed to the katas folder:
+
+```console
+cd oidc-oauth2-katas
+```
+
 ## Exercise
 
 ### Deploy Client
 
-First, set some variables that help us build URLs:
+Set the following URLs as environment variables:
 
 ```console
-export USER_NUM=<X>             # Use your assigned user number
-export TRAINING_NAME=<xxx>      # Get this from your trainer
-export CLIENT1_ID=client1
-export CLIENT1_SECRET=<xxx>     # This is your client1 'credential'
-```
-
-For convenience, set the following variables:
-
-```console
-export CLIENT1_BASE_URL=https://client1.student$USER_NUM.$TRAINING_NAME.eficode.academy
-export OIDC_ISSUER_URL=https://keycloak.student$USER_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm
+export OIDC_AUTH_URL=`curl -s https://keycloak.student$STUDENT_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm/.well-known/openid-configuration | jq -r .authorization_endpoint`
+export OIDC_TOKEN_URL=`curl -s https://keycloak.student$STUDENT_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm/.well-known/openid-configuration | jq -r .token_endpoint`
+export CLIENT1_BASE_URL=https://client1.student$STUDENT_NUM.$TRAINING_NAME.eficode.academy
+echo $CLIENT1_BASE_URL
 ```
 
 Next, create a Kubernetes `ConfigMap` and `Secret` for client configuration:
@@ -55,7 +71,6 @@ kubectl create configmap client1 \
 and deploy the client:
 
 ```console
-cd oidc-oauth2-katas/
 kubectl apply -f kubernetes/client1.yaml
 ```
 
@@ -64,7 +79,7 @@ stored in `$CLIENT1_BASE_URL`.
 
 ### Using Tokens with Curl
 
-Login to get tokens and export them in the terminal:
+Login to the client to get tokens and export them in the terminal:
 
 ```console
 export ID_TOKEN=<xxx>
@@ -75,7 +90,7 @@ export REFRESH_TOKEN=<zzz>
 Next, we use the OIDC discovery endpoint to find the URL where we can fetch userinfo:
 
 ```console
-export USERINFO_EP=`curl -s https://keycloak.student$USER_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm/.well-known/openid-configuration | jq -r .userinfo_endpoint`
+export USERINFO_EP=`curl -s https://keycloak.student$STUDENT_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm/.well-known/openid-configuration | jq -r .userinfo_endpoint`
 ```
 
 Userinfo is a 'protected resource', i.e. we need to provide the access
@@ -112,15 +127,13 @@ echo -n $ID_TOKEN | cut -d. -f2 | base64 -d | jq .
 The ID-token may contain the same claims as returned from the userinfo
 endpoint, however, this is not guaranteed. To keep the ID-token small,
 identity providers are allowed to only include a minimal set of claims
-in the ID-token, i.e. for a general OIDC-based client it is advised to
-rely on the userinfo endpoint for extended user information. See
+in the ID-token. See
 [ID-token](https://openid.net/specs/openid-connect-core-1_0.html#IDToken)
 and [Standard
 claims](https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims)
 for details.
 
-In exercise [Confidential Client with Authorization Code
-Flow](confidential-client-auth-code-flow.md) for simplicity we
+In exercise [Authorization Code Flow - Part 1](authorization-code-flow.md) for simplicity we
 displayed the 'logged in as' username using the ID-token claim
 `preferred_username`. However, as noted above, ideally we should fetch
 this information from the userinfo endpoint.
@@ -132,7 +145,7 @@ three tokens we got through an 'introspection endpoint'. We find the
 introspection endpoint using OIDC discovery as follows:
 
 ```console
-export INTROSPECTION_EP=`curl -s https://keycloak.student$USER_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm/.well-known/openid-configuration | jq -r .introspection_endpoint`
+export INTROSPECTION_EP=`curl -s https://keycloak.student$STUDENT_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm/.well-known/openid-configuration | jq -r .introspection_endpoint`
 ```
 
 Lets introspect our access and refresh tokens:
@@ -204,7 +217,7 @@ token endpoint. As from the previous exercise, store the identity
 provider token endpoint in an environment variable:
 
 ```console
-export OIDC_TOKEN_URL=`curl -s https://keycloak.student$USER_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm/.well-known/openid-configuration | jq -r .token_endpoint`
+export OIDC_TOKEN_URL=`curl -s https://keycloak.student$STUDENT_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm/.well-known/openid-configuration | jq -r .token_endpoint`
 ```
 
 Next, issue a refresh request using `grant_type=refresh_token` and specifying the current refresh token:
@@ -224,7 +237,7 @@ variable:
 curl --data "client_id=$CLIENT1_ID&client_secret=$CLIENT1_SECRET&token=$ACCESS_TOKEN" $INTROSPECTION_EP | jq .
 ```
 
-we may get the result that it is no longer active:
+we *may* get the result that it is no longer active:
 
 ```
 {
@@ -234,7 +247,7 @@ we may get the result that it is no longer active:
 
 Note, however, that revoking old access/refresh tokens when issuing
 new tokens are defined as a `MAY` in the standards, i.e. it is not
-guaranteed. KeyCloak currently DOES NOT revoke tokens, but many other
+guaranteed. KeyCloak currently *DOES NOT* revoke tokens, but many other
 identity providers do.
 
 ### Re-validating User Login
@@ -254,13 +267,13 @@ session. The only way for a server-side client to validate if the user
 still has a valid session is to re-authenticate, e.g. re-do the
 authorization code flow login.
 
-> With in-browser Javascript we can do more, but that is not within the scope of this exercise.
+> With in-browser Javascript and 3rd pasrty cookies we can do more, but that is not within the scope of this exercise.
 
 To see current user login sessions from a KeyCloak perspective, go to
 KeyCloak and in the left-hand menu select `Users` and then `View all
 users` in the top menu. Next, click on the user ID of the user
 logged-in and then `Sessions` in the top menu. Next, you will see the
-following (do not press the `Logout` button yet!):
+following (**do not press the `Logout` button yet!**):
 
 > ![User login sessions](images/keycloak-user-sessions-anno.png)
 
@@ -303,9 +316,14 @@ We will now see, that the ID token is no longer active:
 }
 ```
 
-Also, if you retry 'Check Login Status' in the client you will now be
-prompted for full login because the client observes an error in the
-authorization code flow.
+Also, if you retry 'Check Login Status' in the client you will be
+redirected to the client login page because the client observes an
+error in the authorization code flow.  This can be seen from the
+callback parameters:
+
+```
+GET /callback?error=login_required ...
+```
 
 Login and continue below for how to logout from the identity provider from the client.
 
@@ -316,8 +334,10 @@ provider provide an URL, which we can find from the OIDC
 configuration as `end_session_endpoint`:
 
 ```console
-export OIDC_END_SESSION_EP=`curl -s https://keycloak.student$USER_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm/.well-known/openid-configuration | jq -r .end_session_endpoint`
+export OIDC_END_SESSION_EP=`curl -s https://keycloak.student$STUDENT_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm/.well-known/openid-configuration | jq -r .end_session_endpoint`
 ```
+
+Observe, that the logged-in user have an active session in KeyCloak.
 
 Identity provider logout from the client is then achieved with an
 `id_token_hint` parameter to indicate who is logging out:
@@ -326,6 +346,8 @@ Identity provider logout from the client is then achieved with an
 export ID_TOKEN=<xxx>    # Update with newest ID token from client UI
 curl "$OIDC_END_SESSION_EP?id_token_hint=$ID_TOKEN"
 ```
+
+Observe, that the user no longer have an active session in KeyCloak.
 
 <details>
 <summary>:question:Is this proper use of the ID token?</summary>

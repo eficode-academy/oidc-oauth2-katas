@@ -22,8 +22,8 @@ For reference, the authorization code flow is illustrated below:
 
 ## Prerequisites
 
-This exercise use the following environment variables. They will
-already be configured for Eficode-run trainings:
+This exercise use the following environment variables. **They will
+already be configured for Eficode-run trainings**:
 
 ```
 STUDENT_NUM

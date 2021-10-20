@@ -20,8 +20,8 @@ exercise [Protecting Resources and APIs](protecting-apis.md)
 
 ## Prerequisites
 
-This exercise require the following environment variables. **These are
-preconfigured in Eficode-run trainings**:
+This exercise use the following environment variables. **They will
+already be configured for Eficode-run trainings**:
 
 ```
 export SPA_CLIENT_ID=spa
