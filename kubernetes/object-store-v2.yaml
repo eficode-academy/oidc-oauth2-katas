@@ -15,7 +15,7 @@ spec:
         app: object-store-v2
     spec:
       containers:
-      - image: praqma/oidc-oauth2-katas-client:sha-ef78e10
+      - image: praqma/oidc-oauth2-katas-client:sha-fc6f68e
         name: object-store
         command: ["npm", "run", "watch"]
         #command: ["node", "src/client.js"]
