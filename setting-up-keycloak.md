@@ -155,3 +155,30 @@ know where to locate it.
 
 **Repeat the steps above to create `client2` and `spa` client. For the
   `spa` client, configure the Access Token Lifespan to 1 minute!**
+
+### Adding New Scopes to Client
+
+The following section describes adding custom scopes for the
+[Protecting Resources and APIs](protecting-apis.md) exercise. The API
+URL mentioned below is the API URL from that exercise.
+
+Select `Client Scopes` in the left-hand menu and `Create` in the
+right-hand corner. Next, add a scope that use your API endpoint URL as
+name **postfixed with `:read`** and `Consent Screen Text` set to
+`API-read` similar to the following:
+
+> ![KeyCloak custom scope](images/keycloak-add-custom-scope-anno.png)
+
+Also create a scope that ends with `:write` and name `API-write`.
+
+Finally we need to add the new scopes as optional scopes for our
+client. Select `Client` in the left-hand menu and `Client Scopes` in
+the top-menu. This setting allow us to specify which scopes are
+returned by default and which are optional and thus can be requested
+by clients.
+
+In the `Optional Client Scopes` list, select one of our new scopes and
+click `Add selected` to allow this client to use the scope. Do this
+for both scopes:
+
+> ![KeyCloak assign optional scopes](images/keycloak-set-client-scopes-anno.png)

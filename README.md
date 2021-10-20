@@ -12,9 +12,9 @@ These exercises assumes a pre-configured OIDC provider. See [Setting up KeyCloak
 - [Using Tokens](using-tokens.md)
 - [Protecting Resources and APIs](protecting-apis.md)
 - [Using Authorizing Proxies](authorizing-proxy.md)
+- [OIDC in Browser-based Apps (SPAs)](oidc-in-spas.md)
 - [Protecting against CSRF Attacks](csrf-attacks.md)
 - [Session Storage](session-storage.md)
-- [OIDC in Browser-based Apps (SPAs)](oidc-in-spas.md)
 
 ## Software Components
 
