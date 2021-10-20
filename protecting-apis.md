@@ -65,7 +65,7 @@ implementation. The core part is the following, which does the OIDC
 discovery and installs a middleware that **only trusts JWTs issued
 from the identity provider**:
 
-```node
+```nodejs
 // OIDC discovery to locate the JWKS URI used to validate JWTs
 Issuer.discover(oidc_issuer_url)
     .then(function (issuer) {
@@ -86,23 +86,38 @@ Issuer.discover(oidc_issuer_url)
 	}));
 ```
 
+## Prerequisites
+
+This exercise use the following environment variables. **They will
+already be configured for Eficode-run trainings**:
+
+```
+STUDENT_NUM
+TRAINING_NAME
+CLIENT1_ID
+CLIENT1_SECRET
+```
+
+Use the following command to inspect your environment variables:
+
+```console
+env | egrep 'STUDENT_NUM|TRAINING_NAME|^CLIENT[12]_|^SPA_|^OIDC_' | sort
+```
+
+Exercises assume you have changed to the katas folder:
+
+```console
+cd oidc-oauth2-katas
+```
 
 ## Exercise
 
-First, set some variables that help us build URLs:
+Set the following URLs as environment variables:
 
 ```console
-export USER_NUM=<X>             # Use your assigned user number
-export TRAINING_NAME=<xxx>      # Get this from your trainer
-export CLIENT1_ID=client1
-export CLIENT1_SECRET=<xxx>     # This is your client1 'credential'
-```
-
-For convenience, set the following variables:
-
-```console
-export CLIENT1_BASE_URL=https://client1.student$USER_NUM.$TRAINING_NAME.eficode.academy
-export OIDC_ISSUER_URL=https://keycloak.student$USER_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm
+export OIDC_ISSUER_URL=https://keycloak.student$STUDENT_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm
+export CLIENT1_BASE_URL=https://client1.student$STUDENT_NUM.$TRAINING_NAME.eficode.academy
+echo $CLIENT1_BASE_URL
 ```
 
 Note that instead of configuring `OIDC_AUTH_URL` and `OIDC_TOKEN_URL`
@@ -126,7 +141,6 @@ kubectl create configmap client1 \
 and deploy the client:
 
 ```console
-cd oidc-oauth2-katas/
 kubectl apply -f kubernetes/client1-v2.yaml
 ```
 
@@ -142,7 +156,6 @@ kubectl create configmap api \
 and deploy the API:
 
 ```console
-cd oidc-oauth2-katas/                # Skip this if you did it above
 kubectl apply -f kubernetes/protected-api.yaml
 ```
 
@@ -158,7 +171,7 @@ export ACCESS_TOKEN=<yyy>
 For convenience, set an environment variable that holds the API endpoint
 
 ```console
-export API_EP=https://api.student$USER_NUM.$TRAINING_NAME.eficode.academy
+export API_EP=https://api.student$STUDENT_NUM.$TRAINING_NAME.eficode.academy
 ```
 
 Now we can access the API using the access token in an `Authorization`
@@ -208,28 +221,9 @@ echo $ACCESS_TOKEN | cut -d. -f2 |base64 -d | jq .scope
 
 First we need to add two new scopes, one for read and one for write.
 
-#### Adding New Scopes with KeyCloak
 
-Go to the KeyCloak admin UI and select `Client Scopes` in the
-left-hand menu and `Create` in the right-hand corner. Next, add a
-scope that use your API endpoint URL as name **postfixed with `:read`**
-and `Consent Screen Text` set to `API-read` similar to the following:
 
-> ![KeyCloak custom scope](images/keycloak-add-custom-scope-anno.png)
 
-Also create a scope that ends with `:write` and name `API-write`.
-
-Finally we need to add the new scopes as optional scopes for our
-client. Select `Client` in the left-hand menu and `Client Scopes` in
-the top-menu. This setting allow us to specify which scopes are
-returned by default and which are optional and thus can be requested
-by clients.
-
-In the `Optional Client Scopes` list, select one of our new scopes and
-click `Add selected` to allow this client to use the scope. Do this
-for both scopes:
-
-> ![KeyCloak assign optional scopes](images/keycloak-set-client-scopes-anno.png)
 
 Next, go to the client, logout using the button in the top and before logging-in again, specify an additional scope after `openid profile`, e.g.
 
@@ -253,7 +247,7 @@ Open `index.js` in an editor on the machine where you are running your
 `kubectl` commands. Locate the `GET` for object-by-id. It looks like
 this (around line 54):
 
-```node
+```nodejs
 	app.get('/object/:id',
 		//allowScopes(['yyy']),
 		(req, res) => {
@@ -306,7 +300,7 @@ Next, update `object-store/src/index.js` to require the new `:read`
 scope we added, e.g. similarly to what is shown below and use `kubectl
 cp` to update the API POD.
 
-```
+```nodejs
 	app.get('/object/:id',
 		allowScopes(['https://api.user1.mvl.eficode.academy:read']),
 		(req, res) => {
@@ -361,7 +355,7 @@ where `developer` is the role we added for this example.
 
 Since the JWT claims are just entries in a dictionary, there is no fundamental difference in implementing access restrictions using roles instead of scopes. The implementation follows closely the `allowScope()` function, e.g. something like:
 
-```node
+```nodejs
         function allowRoles(wants) {
             return function(req, res, next) {
                 console.log('Have auth.realm_access.roles', req.auth.realm_access.roles, 'wants', wants);
@@ -385,7 +379,7 @@ object-by-id function to only allow access given one of the roles you
 assigned users (around line 54). You may even combine the scope and role access
 restrictions with something like:
 
-```node
+```nodejs
         app.get('/object/:id',
                 allowScopes(['https://api.user1.mvl.eficode.academy:read']),
                 allowRoles(['developer']),
