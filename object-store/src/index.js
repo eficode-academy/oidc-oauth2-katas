@@ -86,6 +86,23 @@ Issuer.discover(oidc_issuer_url)
             }
         }
 
+        function allowRoles(wants) {
+            return function(req, res, next) {
+                console.log('Have auth.realm_access.roles', req.auth.realm_access.roles, 'wants', wants);
+                const have = req.auth.realm_access.roles;
+                for (const idx in wants) {
+                    if ( ! have.includes(wants[idx])) {
+                        console.log('Missing role', wants[idx]);
+                        const err = new Error();
+                        err.message = 'insufficient_scope'
+                        err.status = 403;
+                        next(err);
+                    }
+                }
+                next();
+            }
+        }
+
         app.listen(port, () => {
             console.log(`Object store listening on port ${port}!`);
         });
