@@ -55,9 +55,9 @@ objects[uuid.v4()] = {title: 'Test object'}
 
 The API implementation use the same
 [openid-client](https://www.npmjs.com/package/openid-client) library
-as the client. However, the API implementation only use this library
-for OIDC discovery to find the URL of the keys used to sign JWTs. Part
-of the API authorization is to validate the signature on the
+as the client application that handles login. However, the API
+implementation only use this library for OIDC discovery to find the
+URL of the keys used to sign JWTs and to validate the signature on the
 access-token JWTs used to access the API.
 
 The API implementation is a standard NodeJS express
@@ -123,7 +123,7 @@ echo $CLIENT1_BASE_URL
 Note that instead of configuring `OIDC_AUTH_URL` and `OIDC_TOKEN_URL`
 separately, the `v2` client use the OIDC discovery endpoint and
 discovers these URLs automatically, i.e. it only needs an OIDC issuer
-URL:
+URL.
 
 ### Deploy Client
 
@@ -162,7 +162,8 @@ kubectl apply -f kubernetes/protected-api.yaml
 ### Accessing the API
 
 When the client and API PODs are `Running`, do a login through the
-client to get tokens and export the access token in the terminal:
+client (URL as stored in `CLIENT1_BASE_URL` above) to get tokens and
+export the access token in the terminal:
 
 ```console
 export ACCESS_TOKEN=<yyy>
@@ -219,16 +220,23 @@ see the `scope` of your current access token use this command:
 echo $ACCESS_TOKEN | cut -d. -f2 |base64 -d | jq .scope
 ```
 
-First we need to add two new scopes, one for read and one for write.
-
-
-
-
-
-Next, go to the client, logout using the button in the top and before logging-in again, specify an additional scope after `openid profile`, e.g.
+Next, we will obtain an access token with scopes dedicated for read
+and/or write access. The client accepts two optional scopes with a
+`:read` and `:write` suffix. Use the following commands to get the
+specific name of these scopes:
 
 ```
-openid profile https://api.user1.mvl.eficode.academy:read
+echo "https://api.student$STUDENT_NUM.$TRAINING_NAME.eficode.academy:read"
+echo "https://api.student$STUDENT_NUM.$TRAINING_NAME.eficode.academy:write"
+```
+
+
+Next, go to the client, logout using the button in the top and before
+logging-in again, add the scope with the `:read` suffix after `openid
+profile`, e.g. (where `<X>` and `<name>` are your specific values):
+
+```
+openid profile https://api.student<X>.<name>.eficode.academy:read
 ```
 
 After login, you should see the new scope in the access token with:
@@ -269,11 +277,11 @@ kubectl logs -f -l app=api
 ```
 
 Next, edit `object-store/src/index.js` and remove the `//` in front of
-`allowScopes` **but keep the bogus `yyy` scope**. Since this is a scope we
+`allowScopes` (around line 55) **but keep the bogus `yyy` scope**. Since this is a scope we
 do not have in our access token we should expect an error when trying
 to access the API.
 
-Next, use `kubectl cp` to copy the code changes to the running API
+Save the file and use `kubectl cp` to copy the code changes to the running API
 POD:
 
 ```console
@@ -297,12 +305,12 @@ You should see the access being denied with:
 ```
 
 Next, update `object-store/src/index.js` to require the new `:read`
-scope we added, e.g. similarly to what is shown below and use `kubectl
+scope we added, e.g. similarly to what is shown below (but with your specific scope) and use `kubectl
 cp` to update the API POD.
 
 ```nodejs
 	app.get('/object/:id',
-		allowScopes(['https://api.user1.mvl.eficode.academy:read']),
+		allowScopes(['https://api.user123.oidc.eficode.academy:read']),
 		(req, res) => {
 		    const id = req.params.id;
 		    res.send(objects[id]);
@@ -313,8 +321,6 @@ Retry the get-by-id operation, which should now succeed (since the API
 has no persistence and creates random object IDs at startup, remember
 to also update `OBJID`).
 
-Optionally, add the `:write` scope to the object-store `POST` method in the API, replacing the `//allowScopes(['xxx'])`.
-
 #### Role Based Access Control (RBAC)
 
 Using scopes is a resource-centric approach since it concerns itself
@@ -324,19 +330,17 @@ role. OIDC/OAuth2 does not have a role concept, but identity providers
 often provide this functionality (although the details of the
 implementation vary).
 
-In the following we will gate access to the API using user
-roles. Follow the guide for [adding roles to users in
-KeyCloak](keycloak-add-roles.md) before continuing.
+In the following we will gate access to the API using *user roles*.
+Our two users (`user1` and `user2`) have been configured with a role
+each (`developer` and `sre` respectively).
 
-Logout of the client and login again to get an access token with the
-role claims. Set an environment variable with the new access token and display its `.realm_access` claim:
+We can see our users' role through the `.realm_access` claim:
 
 ```console
-export ACCESS_TOKEN=<yyy>
 echo $ACCESS_TOKEN | cut -d. -f2 |base64 -d | jq .realm_access
 ```
 
-You should see something like:
+You should see something like the following for `user1`:
 
 ```
 {
@@ -349,35 +353,20 @@ You should see something like:
 }
 ```
 
-where `developer` is the role we added for this example.
+where `developer` is the essential role assigned to `user1`.
 
 > The claim name `.realm_access` is KeyCloak specific, other identity provides will use other claim names.
 
-Since the JWT claims are just entries in a dictionary, there is no fundamental difference in implementing access restrictions using roles instead of scopes. The implementation follows closely the `allowScope()` function, e.g. something like:
+Since the JWT claims are just entries in a dictionary, there is no
+fundamental difference in implementing access restrictions using roles
+instead of scopes. The implementation follows closely the
+`allowScope()` function. See the `allowRoles()` function around line
+89.
 
-```nodejs
-        function allowRoles(wants) {
-            return function(req, res, next) {
-                console.log('Have auth.realm_access.roles', req.auth.realm_access.roles, 'wants', wants);
-                const have = req.auth.realm_access.roles;
-                for (const idx in wants) {
-                    if ( ! have.includes(wants[idx])) {
-                        console.log('Missing role', wants[idx]);
-                        const err = new Error();
-                        err.message = 'insufficient_scope'
-                        err.status = 403;
-                        next(err);
-                    }
-                }
-                next();
-            }
-        }
-```
-
-Add the above function to the API and modify the `GET` for
-object-by-id function to only allow access given one of the roles you
-assigned users (around line 54). You may even combine the scope and role access
-restrictions with something like:
+Next, we modify the `GET` for object-by-id function to only allow
+access given one of the roles you assigned users (around line 54). You
+may even combine the scope and role access restrictions with something
+like:
 
 ```nodejs
         app.get('/object/:id',
@@ -394,6 +383,11 @@ accessing the API using access tokens from your two users in two
 different groups (remember to log-out and in to get access tokens with
 the new group claim). Observe the result in the logs when reading an
 object-by-id with a user without the required group relationship.
+
+### Optional Extras
+
+Add write-protection to the API by adding the scope with suffix `:write` to the object-store `POST` method in the API.
+
 
 ### Clean up
 

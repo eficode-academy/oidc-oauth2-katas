@@ -22,7 +22,7 @@ typical usecase with Kubernetes Deployments.
 First, set some variables that help us build URLs:
 
 ```console
-export USER_NUM=<X>             # Use your assigned user number
+export STUDENT_NUM=<X>             # Use your assigned user number
 export TRAINING_NAME=<xxx>      # Get this from your trainer
 ```
 
@@ -36,8 +36,8 @@ export CLIENT1_SECRET=<xxx>     # This is your client1 'credential'
 And create an environment variable with the client and identity provider URLs:
 
 ```console
-export CLIENT1_BASE_URL=https://client1.student$USER_NUM.$TRAINING_NAME.eficode.academy
-export OIDC_ISSUER_URL=https://keycloak.student$USER_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm
+export CLIENT1_BASE_URL=https://client1.student$STUDENT_NUM.$TRAINING_NAME.eficode.academy
+export OIDC_ISSUER_URL=https://keycloak.student$STUDENT_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm
 ```
 
 ### Sessions are not Shared Across PODs
