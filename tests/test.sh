@@ -140,7 +140,8 @@ function exercise-using-tokens-test {
 
 
 function exercise-protecting-apis-setup-env {
-    protecting-apis.md-exercise-block2
+    protecting-apis.md-prerequisites-block1
+    protecting-apis.md-exercise-block1
     protecting-apis.md-accessing-the-api-block2
 }
 
@@ -151,6 +152,11 @@ function exercise-protecting-apis-deploy {
     protecting-apis.md-deploy-client-block2
     protecting-apis.md-deploy-api-block1
     protecting-apis.md-deploy-api-block2
+
+    kubectl wait --for=condition=ready pod -l app=client1 --timeout=60s
+    kubectl wait --for=condition=ready pod -l app=api --timeout=60s
+    sleep 10
+    protecting-apis.md-adding-scope-to-the-api-block2
 
     kubectl wait --for=condition=ready pod -l app=client1 --timeout=60s
     kubectl wait --for=condition=ready pod -l app=api --timeout=60s

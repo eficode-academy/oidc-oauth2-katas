@@ -370,7 +370,7 @@ like:
 
 ```nodejs
         app.get('/object/:id',
-                allowScopes(['https://api.user1.mvl.eficode.academy:read']),
+                allowScopes(['https://api.user123.oidc.eficode.academy:read']),
                 allowRoles(['developer']),
                 (req, res) => {
                     const id = req.params.id;
@@ -380,9 +380,10 @@ like:
 
 Deploy the code with the `kubectl cp` command shown above and try
 accessing the API using access tokens from your two users in two
-different groups (remember to log-out and in to get access tokens with
-the new group claim). Observe the result in the logs when reading an
-object-by-id with a user without the required group relationship.
+different roles. User `user2` should be unable to read an object by ID
+since it does not have the role `developer`. Observe the result in the
+logs when reading an object-by-id with a user without the required
+roles.
 
 ### Optional Extras
 
