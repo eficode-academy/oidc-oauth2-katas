@@ -183,18 +183,19 @@ function exercise-protecting-apis-test {
 
 
 function exercise-authorizing-proxy-setup-env {
-    authorizing-proxy.md-exercise-block3
-    authorizing-proxy.md-exercise-block5
+    authorizing-proxy.md-deploy-oauth2-proxy-block1
+    authorizing-proxy.md-deploy-oauth2-proxy-block3
 }
 
 function exercise-authorizing-proxy-deploy {
     exercise-authorizing-proxy-setup-env
 
-    authorizing-proxy.md-exercise-block1
-    authorizing-proxy.md-exercise-block4
-    authorizing-proxy.md-exercise-block6
-    authorizing-proxy.md-exercise-block7
-    authorizing-proxy.md-exercise-block8
+    authorizing-proxy.md-prerequisites-block1
+    authorizing-proxy.md-deploy-httpbin-block1
+    authorizing-proxy.md-deploy-oauth2-proxy-block2
+    authorizing-proxy.md-deploy-oauth2-proxy-block4
+    authorizing-proxy.md-deploy-oauth2-proxy-block5
+    authorizing-proxy.md-deploy-oauth2-proxy-block6
 
     kubectl wait --for=condition=ready pod -l app=oauth2-proxy --timeout=60s
     kubectl wait --for=condition=ready pod -l app=httpbin --timeout=60s
