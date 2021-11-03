@@ -84,8 +84,9 @@ functional since we are still missing some components.
 ### Deploy Login BFF
 
 Next we will deploy the login backend-for-frontend (BFF), which we
-call `login`. Create a `Secret` and `ConfigMap` with configuration
-information. Note that we use the SPA base URL as the redirection URL,
+call `login`. Create a `Secret` and `ConfigMap` with OIDC
+configuration information similar to what we have seen in other
+exercises. Note that we use the SPA base URL as the redirection URL,
 i.e. where we return after having completed login at the identity
 provider:
 
@@ -104,24 +105,12 @@ Finally, deploy the `login` component:
 kubectl apply -f kubernetes/spa-login.yaml
 ```
 
-### Deploy API Gateway
-
-The SPA cannot access the API yet, since it needs a component to
-exchange the session cookie for an access token. The API gateway
-component does that.
-
-Deploy the API gateway with:
-
-```console
-kubectl apply -f kubernetes/spa-api-gw.yaml
-```
-
 ### Deploy API
 
 We will use the 'object store' from exercise [Protecting Resources and
 APIs](protecting-apis.md) as an example of a protected resource with
 an API that use an access token to authorizing access. The
-object-store allow any access token as long at it comes from a trustet
+object-store allow any access token as long at it comes from a trusted
 provider.
 
 Create a `ConfigMap` with the OIDC issuer from which the object-store
@@ -136,6 +125,18 @@ and deploy the API:
 
 ```console
 kubectl apply -f kubernetes/protected-api.yaml
+```
+
+### Deploy API Gateway
+
+The SPA cannot access the API yet, since it needs a component to
+exchange the session cookie for an access token. The API gateway
+component does that.
+
+Deploy the API gateway with:
+
+```console
+kubectl apply -f kubernetes/spa-api-gw.yaml
 ```
 
 All components of the SPA are now deployed.
@@ -182,11 +183,6 @@ window.addEventListener('load', () => {
 });
 ```
 
-<details>
-<summary>:bulb: The SPA links HTML buttons with code explicitly in Javascript code instead of embedding it in the HTML. Why could that be?</summary>
-This is because the Content-Security-Policy set by the CDN did not allow in-line Javascript in HTML code. This is to protect against cross-site injection attacks.
-</details>
-
 When clicking the `Login` button, the SPA calls the `doBFFLogin()`
 function and makes a request to the BFF. The BFF return a JSON
 structure with an `authRedirUrl` field with where the SPA should
@@ -211,7 +207,9 @@ the exception, that the server side application would return an HTTP
 303 redirect message instead of relying on a browser side application
 doing the redirect.
 
-Next, click the `Login` button.
+## Login
+
+Click the `Login` button.
 
 In the logs from the Login BFF, you will see, that it returns a
 redirect URL very similar to what we have seen before:
