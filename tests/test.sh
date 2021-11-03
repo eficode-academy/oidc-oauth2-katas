@@ -337,9 +337,9 @@ function exercise-oidc-in-spas-deploy {
     oidc-in-spas.md-deploy-spa-cdn-block1
     oidc-in-spas.md-deploy-login-bff-block1
     oidc-in-spas.md-deploy-login-bff-block2
-    oidc-in-spas.md-deploy-api-gateway-block1
     oidc-in-spas.md-deploy-api-block1
     oidc-in-spas.md-deploy-api-block2
+    oidc-in-spas.md-deploy-api-gateway-block1
 
     kubectl wait --for=condition=ready pod -l app=spa-cdn --timeout=60s
     kubectl wait --for=condition=ready pod -l app=spa-login --timeout=60s
@@ -397,6 +397,11 @@ function test-all {
     exercise-authorizing-proxy-test
     exercise-authorizing-proxy-undeploy
 
+    echo "### exercise-oidc-in-spas"
+    exercise-oidc-in-spas-deploy
+    exercise-oidc-in-spas-test
+    exercise-oidc-in-spas-undeploy
+
     echo "### exercise-csrf-attacks"
     exercise-csrf-attacks-deploy
     exercise-csrf-attacks-test
@@ -406,11 +411,6 @@ function test-all {
     exercise-session-storage-deploy
     exercise-session-storage-test
     exercise-session-storage-undeploy
-
-    echo "### exercise-oidc-in-spas"
-    exercise-oidc-in-spas-deploy
-    exercise-oidc-in-spas-test
-    exercise-oidc-in-spas-undeploy
 }
 
 while [[ $# -gt 0 ]]
