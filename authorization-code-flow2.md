@@ -107,11 +107,13 @@ current user.  The client we currently are using does not have full
 logout functionality, so instead we redeploy the client and clear the
 login state in KeyCloak.
 
-Redeploy the client:
+Redeploy the client with:
 
 ```console
 kubectl rollout restart deploy client1
 ```
+
+and refresh the browser to see the initial login screen.
 
 To clear the login state in KeyCloak, go to KeyCloak and in the
 left-hand menu select `Users` and then `View all users` in the top
@@ -227,19 +229,20 @@ the left-hand side (under `3` in the image) and select
 First, refresh the client in the browser window - you will see, that
 deleting the KeyCloak cookies had no effect on the client.
 
-Second, restart the client as above and retry the login. This time
-you will be prompted for login information.
+Second, restart the client as above, refresh the client in the browser
+and retry the login. This time you will be prompted for login
+information.
 
 <details>
 <summary>:question:What about 'consent' - KeyCloak did not ask about it this time?</summary>
 
-You may notice, that you where not asked about consent once more. Identity providers typically only asks this initially and then stores the consent for each user+client. You can find this in KeyCloak under `Users` and `Consent`. Consent is an 'agreement' between you/browser and the identity provider. The redeployed client used the existing consent agreement for `client1`.
+You may notice, that you were not asked about consent once more. Identity providers typically only asks this initially and then stores the consent for each user+client. You can find this in KeyCloak under `Users` and `Consent`. Consent is an 'agreement' between you/browser and the identity provider. The redeployed client used the existing consent agreement for `client1`.
 </details>
 
 <details>
 <summary>:question:The example client does not use cookies. What are the security implications of this?</summary>
 
-The example client use global variables to store tokens and does not set any browser cookies with e.g. session IDs. This means that there is no browser-to-client authentication and authorization. Anyone accessing the client can see the tokens!
+The example client use global variables to store tokens and does not set any browser cookies with e.g. session IDs. This means that there is no browser-to-client authentication and authorization. Anyone accessing the client URL can see the tokens without having to login!
 </details>
 
 ### Single Sign On (SSO)
@@ -253,6 +256,7 @@ Create the following environment variable with the client base URL:
 
 ```console
 export CLIENT2_BASE_URL=https://client2.student$STUDENT_NUM.$TRAINING_NAME.eficode.academy
+echo $CLIENT2_BASE_URL
 ```
 
 Create a Kubernetes `ConfigMap` and `Secret` with this information:

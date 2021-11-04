@@ -51,7 +51,7 @@ Assuming your KeyCloak instance is located at:
 https://keycloak.student<X>.<training-name>.eficode.academy
 ```
 
-then you can fetch the OIDC configuration for the realm `myrealm` with:
+then you can fetch the OIDC configuration for the preconfigured realm `myrealm` with:
 
 ```console
 curl -s https://keycloak.student$STUDENT_NUM.$TRAINING_NAME.eficode.academy/auth/realms/myrealm/.well-known/openid-configuration | jq .
