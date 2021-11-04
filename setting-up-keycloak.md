@@ -23,8 +23,10 @@ Generally, this guide will configure the following in Keycloak:
 
 - A realm named `myrealm`.
 - Two roles named `developer` and `sre`.
-- A user named `user1` with the `developer` role.
-- A user named `user2` with the `sre` role.
+- A user named `user1` with the `developer` role and verified email `user1@example.com`.
+- A user named `user2` with the `sre` role and verified email `user2@example.com`.
+- A user named `user3` with verified email `user3@notexample.com`.
+- A user named `user4` with unverified email `user4@example.com`.
 - A confidential client named `client1` with root URL `https://client1.student<X>.<training-name>.eficode.academy`.
 - A confidential client named `client2` with root URL `https://client2.student<X>.<training-name>.eficode.academy`.
 - A confidential client named `spa` with root URL `https://spa.student<X>.<training-name>.eficode.academy`.
@@ -97,13 +99,17 @@ enter a password and ensure that `Temporary` is set to `OFF`:
 #### Adding Role to User
 
 In the user settings, select `Role Mappings` in the top menu. Next,
-chose one of the roles you created above in the `Available Roles` list
+add the `developer` roles you created above in the `Available Roles` list
 and click `Add selected`. The role should now be assigned to the user
 and shown in the `Assigned Roles` list:
 
 > ![KeyCloak add role to user](images/keycloak-add-role-to-user-anno.png)
 
-**Repeat the steps above to create a second user**
+**Repeat the steps above to:**
+
+ - Create a user `user2` with role `sre` and email `user2@example.com`
+ - Create a user `user3` with verified email `user3@notexample.com`
+ - Create a user `user4` with unverified email `user4@example.com`
 
 ### Configuring Clients
 
