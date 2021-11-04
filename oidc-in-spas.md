@@ -24,8 +24,10 @@ This exercise use the following environment variables. **They will
 already be configured for Eficode-run trainings**:
 
 ```
-export SPA_CLIENT_ID=spa
-export SPA_CLIENT_SECRET=<xxx>
+STUDENT_NUM
+TRAINING_NAME
+SPA_CLIENT_ID
+SPA_CLIENT_SECRET
 ```
 
 Use the following command to inspect your environment variables:
@@ -219,8 +221,8 @@ Return authRedirUrl: https://keycloak.user ... client_id=spa&scope=openid%20prof
 ```
 
 The SPA browser window will redirect to KeyCloak for user login, and
-subsequently return back to the redirection URL specified in the
-`authRedirUrl`.
+when login is completed return back to the redirection URL specified
+in the `authRedirUrl`.
 
 When the SPA has reloaded after login, the SPA console output will
 show, that the SPA calls-back to the Login BFF with the authorization
@@ -228,7 +230,7 @@ code flow `code` (you may have to unfold the console log message to
 see the full details):
 
 ```
-doRequest POST /login/pageload  {pageUrl: "https://spa.user2.mvl.eficode.academy/?state=xxxxx&session_state=yyyyy&code=xxxxx"}
+doRequest POST /login/pageload  {pageUrl: "https://spa.user2.oidc.eficode.academy/?state=xxxxx&session_state=yyyyy&code=xxxxx"}
 ```
 
 And you will see, that the BFF responds with information about our
@@ -249,12 +251,12 @@ may recognize this as ID token claims.
 2. Your access token has expired (the SPA client is configured with an
 access token lifespan of 1 minute). The UserInfo area will show
 `**ERROR** (tokens expired?)`. Use the `Refresh Tokens` button to
-initiate token refresh through the BFF.
+initiate token refresh through the BFF and click `Get User Info` again.
 
 If your tokens where not expired, its worth spending a minute to let
-them expire and try the refresh procedure. *A full-fledged SPA would
-obviously need to detect this situation and automatically refresh
-tokens without user interactions.*
+them expire and try the `Get User Info` and `Refresh Tokens`
+procedure. *A full-fledged SPA would obviously need to detect this
+situation and automatically refresh tokens without user interactions.*
 
 ## Accessing the Protected API
 
@@ -267,7 +269,7 @@ The SPA has two buttons for interacting with the protected object store:
   implementation](object-store/src/index.js).
 
 - `List Objects` - does a `GET` towards the `/api/objects` path to
-  fetch all object ID. The `api-gw` rewrites this path and strips
+  fetch all object IDs. The `api-gw` rewrites this path and strips
   `/api`, hence we end up with a `GET` towards the object-store
   `/objects` path.
 
@@ -291,7 +293,9 @@ Note also, that since the object store/API validates the access token provided a
 ...  POST /object HTTP/1.1" 401 ...
 ```
 
-Use the `Refresh Tokens` button to refresh the access token.
+Use the `Refresh Tokens` button to refresh the access token. A
+full-fledged SPA would obviously need to detect this situation and
+automatically refresh tokens without user interactions.
 
 Experiment with listing and creating objects in both logged-in,
 logged-out and tokens-expired situations.

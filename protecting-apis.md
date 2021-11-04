@@ -310,7 +310,7 @@ cp` to update the API POD.
 
 ```nodejs
 	app.get('/object/:id',
-		allowScopes(['https://api.user123.oidc.eficode.academy:read']),
+		allowScopes(['https://api.student123.oidc.eficode.academy:read']),
 		(req, res) => {
 		    const id = req.params.id;
 		    res.send(objects[id]);
@@ -370,7 +370,7 @@ like:
 
 ```nodejs
         app.get('/object/:id',
-                allowScopes(['https://api.user123.oidc.eficode.academy:read']),
+                allowScopes(['https://api.student123.oidc.eficode.academy:read']),
                 allowRoles(['developer']),
                 (req, res) => {
                     const id = req.params.id;

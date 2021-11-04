@@ -146,7 +146,7 @@ client logs. The login redirection to the identity provider can be
 seen from the line similar to:
 
 ```
-Redirecting login to identity provider https://keycloak.user1.mvl.eficode.academy/auth/realms/myrealm/protocol/openid-connect/auth?response_type=code&client_id=client1&scope=openid%20profile&redirect_uri=https%3A%2F%2Fclient1.user1.mvl.eficode.academy%2Fcallback&state=Tkg5Z21xbFRDUG5MTEZGMTkwQlpwdkdH&nonce=VTBjc1hVeDRvVG9GY081bUhFRjFiS3pz
+Redirecting login to identity provider https://keycloak.student1.oidc.eficode.academy/auth/realms/myrealm/protocol/openid-connect/auth?response_type=code&client_id=client1&scope=openid%20profile&redirect_uri=https%3A%2F%2Fclient1.student1.oidc.eficode.academy%2Fcallback&state=Tkg5Z21xbFRDUG5MTEZGMTkwQlpwdkdH&nonce=VTBjc1hVeDRvVG9GY081bUhFRjFiS3pz
 ```
 
 In the redirection, note how the authorization code flow is initiated
@@ -172,14 +172,14 @@ The code can be exchanged for tokens, and we see the content of the
 exchange from the lines starting with:
 
 ```
-POST to https://keycloak.user1.mvl.eficode.academy/auth/realms/myrealm/protocol/openid-connect/token
+POST to https://keycloak.student1.oidc.eficode.academy/auth/realms/myrealm/protocol/openid-connect/token
  using options {
    headers: {
      ...
      Authorization: 'Basic Y2xpZW50MToxMzNlMjY0Mi0zNWY2LTRjODMtOWMxMC1lNGYyZTgyY2M4Mzc='
    }
  }
- using data code=37551449-72d9-43ee-86ff-3e8f4ef73ffa.312361ea-e6a0-4bce-9e37-f184c595798f.d05ee7b2-4437-4423-a8c3-0aa893a9cf32&grant_type=authorization_code&redirect_uri=https%3A%2F%2Fclient1.user1.mvl.eficode.academy%2Fcallback
+ using data code=37551449-72d9-43ee-86ff-3e8f4ef73ffa.312361ea-e6a0-4bce-9e37-f184c595798f.d05ee7b2-4437-4423-a8c3-0aa893a9cf32&grant_type=authorization_code&redirect_uri=https%3A%2F%2Fclient1.student1.oidc.eficode.academy%2Fcallback
 ```
 
 We see, that the code-to-token exchange is authorized with our client
