@@ -75,7 +75,7 @@ kubectl apply -f kubernetes/client1.yaml
 ```
 
 When the client POD is `Running`, visit the client at the URL you
-stored in `$CLIENT1_BASE_URL`.
+stored in `CLIENT1_BASE_URL`.
 
 ### Using Tokens with Curl
 
@@ -98,7 +98,7 @@ token in an `Authorization header` to access this information. Use the
 following to do this from the terminal:
 
 ```console
-curl -H "Authorization: Bearer $ACCESS_TOKEN" $USERINFO_EP | jq .
+curl -s -H "Authorization: Bearer $ACCESS_TOKEN" $USERINFO_EP | jq .
 ```
 
 and you should see detailed user information:
@@ -124,10 +124,17 @@ Compare the information we got above with the content of the ID token:
 echo -n $ID_TOKEN | cut -d. -f2 | base64 -d | jq .
 ```
 
+<details>
+<summary>:question:Theres quite a difference - what could explain a large part of this difference?</summary>
+
+The ID token contain quite a few claims related to the ID token itself such as expiry time. All these claims are not part of the information returned from the userinfo endpoint.
+</details>
+
+
 The ID-token may contain the same claims as returned from the userinfo
 endpoint, however, this is not guaranteed. To keep the ID-token small,
 identity providers are allowed to only include a minimal set of claims
-in the ID-token. See
+in the ID-token. For further details you may refer to the OIDC standard, see
 [ID-token](https://openid.net/specs/openid-connect-core-1_0.html#IDToken)
 and [Standard
 claims](https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims)
@@ -135,8 +142,8 @@ for details.
 
 In exercise [Authorization Code Flow - Part 1](authorization-code-flow.md) for simplicity we
 displayed the 'logged in as' username using the ID-token claim
-`preferred_username`. However, as noted above, ideally we should fetch
-this information from the userinfo endpoint.
+`preferred_username`. However, as noted above, we should be prepared to fetch
+this information from the userinfo endpoint if it is not part of the ID token.
 
 ### Introspecting Tokens
 
@@ -151,10 +158,8 @@ export INTROSPECTION_EP=`curl -s https://keycloak.student$STUDENT_NUM.$TRAINING_
 Lets introspect our access and refresh tokens:
 
 ```console
-curl --data "client_id=$CLIENT1_ID&client_secret=$CLIENT1_SECRET&token=$ACCESS_TOKEN" $INTROSPECTION_EP | jq .
+curl -s --data "client_id=$CLIENT1_ID&client_secret=$CLIENT1_SECRET&token=$ACCESS_TOKEN" $INTROSPECTION_EP | jq .
 ```
-
-> If you get an error while using the access token, its most likely because the access token has expired. To solve this, use the client to logout and login again to get fresh tokens.
 
 ```
 {
@@ -172,7 +177,7 @@ curl --data "client_id=$CLIENT1_ID&client_secret=$CLIENT1_SECRET&token=$ACCESS_T
 ```
 
 ```console
-curl --data "client_id=$CLIENT1_ID&client_secret=$CLIENT1_SECRET&token=$REFRESH_TOKEN" $INTROSPECTION_EP | jq .
+curl -s --data "client_id=$CLIENT1_ID&client_secret=$CLIENT1_SECRET&token=$REFRESH_TOKEN" $INTROSPECTION_EP | jq .
 ```
 
 ```
@@ -223,18 +228,18 @@ export OIDC_TOKEN_URL=`curl -s https://keycloak.student$STUDENT_NUM.$TRAINING_NA
 Next, issue a refresh request using `grant_type=refresh_token` and specifying the current refresh token:
 
 ```console
-curl --data "client_id=$CLIENT1_ID&client_secret=$CLIENT1_SECRET&grant_type=refresh_token&refresh_token=$REFRESH_TOKEN" $OIDC_TOKEN_URL | jq .
+curl -s --data "client_id=$CLIENT1_ID&client_secret=$CLIENT1_SECRET&grant_type=refresh_token&refresh_token=$REFRESH_TOKEN" $OIDC_TOKEN_URL | jq .
 ```
 
 This request return at least a new access token. It may also return a
 new ID-token and refresh token, but this is not required by the OIDC
-standard. If new ID/refresh tokens are returned, they should be used
-going forward, and the old ones discarded.  E.g. if we introspect the
-old access tokens which we have in the `ACCESS_TOKEN` environment
+standard. **If new ID/refresh tokens are returned, they should be used
+going forward, and the old ones discarded.**  E.g. if we introspect the
+**old** access tokens which we have in the `ACCESS_TOKEN` environment
 variable:
 
 ```console
-curl --data "client_id=$CLIENT1_ID&client_secret=$CLIENT1_SECRET&token=$ACCESS_TOKEN" $INTROSPECTION_EP | jq .
+curl -s --data "client_id=$CLIENT1_ID&client_secret=$CLIENT1_SECRET&token=$ACCESS_TOKEN" $INTROSPECTION_EP | jq .
 ```
 
 we *may* get the result that it is no longer active:
@@ -267,7 +272,7 @@ session. The only way for a server-side client to validate if the user
 still has a valid session is to re-authenticate, e.g. re-do the
 authorization code flow login.
 
-> With in-browser Javascript and 3rd pasrty cookies we can do more, but that is not within the scope of this exercise.
+> With in-browser Javascript and 3rd party cookies we can do more, but that is not within the scope of this exercise.
 
 To see current user login sessions from a KeyCloak perspective, go to
 KeyCloak and in the left-hand menu select `Users` and then `View all
@@ -305,7 +310,7 @@ introspecting the tokens, e.g. here using the ID-token:
 
 ```console
 export ID_TOKEN=<xxx>    # Update with newest ID token from client UI
-curl --data "client_id=$CLIENT1_ID&client_secret=$CLIENT1_SECRET&token=$ID_TOKEN" $INTROSPECTION_EP | jq .
+curl -s --data "client_id=$CLIENT1_ID&client_secret=$CLIENT1_SECRET&token=$ID_TOKEN" $INTROSPECTION_EP | jq .
 ```
 
 We will now see, that the ID token is no longer active:
@@ -358,7 +363,7 @@ Observe, that the user no longer have an active session in KeyCloak.
 <details>
 <summary>:question:Can you think of any reason why the ID token is used for logout?</summary>
 
->OIDC is about identity and authentication (who we are). A login session is an authentication 'channel' between browser and identity provider. Access tokens are authorizing access to protected resources and does not denote an active login session.
+>OIDC is about identity and authentication (who we are). A login session is an authentication 'channel' between browser and identity provider. Access tokens are authorizing access to protected resources and does not denote an active login session. The ID token, however, are related to the authentication/login.
 </details>
 
 
