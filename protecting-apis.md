@@ -225,19 +225,16 @@ and/or write access. The client accepts two optional scopes with a
 `:read` and `:write` suffix. Use the following commands to get the
 specific name of these scopes:
 
-```
+```console
 echo "https://api.student$STUDENT_NUM.$TRAINING_NAME.eficode.academy:read"
 echo "https://api.student$STUDENT_NUM.$TRAINING_NAME.eficode.academy:write"
 ```
 
-
 Next, go to the client, logout using the button in the top and before
 logging-in again, add the scope with the `:read` suffix after `openid
-profile`, e.g. (where `<X>` and `<name>` are your specific values):
+profile`:
 
-```
-openid profile https://api.student<X>.<name>.eficode.academy:read
-```
+> ![Custom scope](images/custom-scope-anno.png)
 
 After login, you should see the new scope in the access token with:
 
